@@ -1,2 +1,2 @@
 # Bilingual-Sentence-Classification
-To mix two language together for sentence classification
+To mix two languages together for sentence classification.
