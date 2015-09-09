@@ -1,6 +1,7 @@
 import util
 import operator
 import re
+import codecs
 
 """
 This module provide a way to build bilingual (English and Chinese) dictionary
@@ -15,7 +16,7 @@ def word_filter(word):
     """
     # normal word
     pattern = "^[a-zA-z]+$"
-    if re.match(pattern, word)
+    if re.match(pattern, word):
         return [word]
 
     # punctuations like [,.-'"/;]
@@ -38,17 +39,6 @@ def word_filter(word):
     if re.match(pattern, word):
         return ['NUMBER']
 
-    # split word
-    if '-' in word:
-        words = []
-        parts = word.split('-')
-        for part in parts:
-            if parts:
-                words.extend(word_filter(parts))
-        return words
-
-
-
 
 def preprocessEnglishCorpus(CorpusFile, preprocessedFile):
     """
@@ -58,7 +48,7 @@ def preprocessEnglishCorpus(CorpusFile, preprocessedFile):
     return: n/a
     """
     print 'preprocessing...'
-    reader = open(segCorpusFile, 'r')
+    reader = open(CorpusFile, 'r')
     buffsize = 250000000
     buffcount = 0
     outputbuffer = []
@@ -71,7 +61,7 @@ def preprocessEnglishCorpus(CorpusFile, preprocessedFile):
             print 'building with '+str(buffcount)+' buffer.....'
         for line in lines:
             words = line.split()
-            for word in words:
+            #for word in words:
 
     reader.close()
 
@@ -111,5 +101,30 @@ def buildEnglishVocab(segCorpusFile, vocabFile):
     print 'output vocabulary done.'
 
 
+def loadBilingualDictionary(bilingual_dict_file):
+    with codecs.open(bilingual_dict_file, 'r', 'utf-8') as reader:
+        entrylines = reader.readlines()
+    ch2eng = {}
+    eng2ch = {}
+    count = 0
+    for line in entrylines:
+        count += 1
+        print count
+        chword = line.split('\t')[0]
+        engtrans = line.split('\t')[-1].strip().strip('/').split('/')
+        engwords = []
+        # delete () description
+        for engtran in engtrans:
+            print engtran
+            print line
+            if not(engtran[0] == '(' and engtran[-1]==')'):
+                engwords.append(engtran)
+        ch2eng[chword] = engwords
+
+    # building english to chinese dictionary
+    for chword, engwords in ch2eng.iteritems():
+
+
+
 if __name__ == '__main__':
-    buildEnglishVocab('../data/1bwlmb', '../data/eng_vocab.lst')
+    loadBilingualDictionary('../data/bilingual_dict.lst')
