@@ -123,6 +123,18 @@ def loadBilingualDictionary(bilingual_dict_file):
 
     # building english to chinese dictionary
     for chword, engwords in ch2eng.iteritems():
+        for engword in engwords:
+            if engword not in eng2ch:
+                eng2ch[engword] = set()
+                eng2ch[engword].add(chword)
+            else:
+                eng2ch[engword].add(chword)
+
+    # convert set in each entry into list
+    for engword, chset in eng2ch.iteritems():
+        eng2ch[engword] = list(chset)
+
+    return eng2ch, ch2eng
 
 
 
