@@ -1,70 +1,12 @@
+__author__ = 'yandixia'
+
 import util
 import operator
-import re
 import codecs
 
 """
 This module provide a way to build bilingual (English and Chinese) dictionary
-from www.iciba.com
 """
-
-def word_filter(word):
-    """
-    func: preprocess word level
-    params: word: the word to be preprocessed
-    return: a list of seperated words. [] if word is to be removed.
-    """
-    # normal word
-    pattern = "^[a-zA-z]+$"
-    if re.match(pattern, word):
-        return [word]
-
-    # punctuations like [,.-'"/;]
-    if word in [',','.','-','--','\'','\"',';','/']:
-        return []
-
-    # filter for url
-    isURL = word[:3] == 'www' or '.com' in word or '.org' in word\
-            or '.uk' in word
-    if isURL:
-        return ['URL']
-
-    # filter for year
-    pattern = '^[12][0-9]{3}$'
-    if re.match(pattern, word):
-        return ['YEAR']
-
-    # filter for numbers
-    pattern = "^[0-9\,\.\-]+$"
-    if re.match(pattern, word):
-        return ['NUMBER']
-
-
-def preprocessEnglishCorpus(CorpusFile, preprocessedFile):
-    """
-    func: preprocess corpus
-    params: CorpusFile: corpus file path
-    params: preprocessedFile: the output preprocessed file
-    return: n/a
-    """
-    print 'preprocessing...'
-    reader = open(CorpusFile, 'r')
-    buffsize = 250000000
-    buffcount = 0
-    outputbuffer = []
-    while True:
-        lines = reader.readlines(buffsize)
-        if not lines:
-            break
-        else:
-            buffcount += 1
-            print 'building with '+str(buffcount)+' buffer.....'
-        for line in lines:
-            words = line.split()
-            #for word in words:
-
-    reader.close()
-
 
 
 def buildEnglishVocab(segCorpusFile, vocabFile):
@@ -85,7 +27,7 @@ def buildEnglishVocab(segCorpusFile, vocabFile):
             break
         else:
             buffcount += 1
-            print 'building with '+str(buffcount)+' buffer.....'
+            print 'building with ' + str(buffcount) + ' buffer.....'
         for line in lines:
             words = line.split()
             for word in words:
@@ -96,28 +38,29 @@ def buildEnglishVocab(segCorpusFile, vocabFile):
     sorted_vocab = sorted(vocab.items(), key=operator.itemgetter(1))
     with open(vocabFile, 'w') as writer:
         for word, count in sorted_vocab:
-            voc_line = word+'\t'+str(count)+'\n'
+            voc_line = word + '\t' + str(count) + '\n'
             writer.write(voc_line)
     print 'output vocabulary done.'
 
 
 def loadBilingualDictionary(bilingual_dict_file):
+    """
+    :func: loading bilingual dictionary from LDC Chinese-English dictionary
+    :param bilingual_dict_file: LDC Chinese-English dictionary
+    :return: chinese to english dictionary and english to chinese dictionary.
+            the structure is a dictionary with list entry
+    """
     with codecs.open(bilingual_dict_file, 'r', 'utf-8') as reader:
         entrylines = reader.readlines()
     ch2eng = {}
     eng2ch = {}
-    count = 0
     for line in entrylines:
-        count += 1
-        print count
         chword = line.split('\t')[0]
         engtrans = line.split('\t')[-1].strip().strip('/').split('/')
         engwords = []
         # delete () description
         for engtran in engtrans:
-            print engtran
-            print line
-            if not(engtran[0] == '(' and engtran[-1]==')'):
+            if not (engtran[0] == '(' and engtran[-1] == ')'):
                 engwords.append(engtran)
         ch2eng[chword] = engwords
 
@@ -135,7 +78,6 @@ def loadBilingualDictionary(bilingual_dict_file):
         eng2ch[engword] = list(chset)
 
     return eng2ch, ch2eng
-
 
 
 if __name__ == '__main__':
