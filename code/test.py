@@ -1,6 +1,7 @@
 """
 this module is for test only
 """
+import codecs
 
 
 def getVocabFromEnglishDictionary():
@@ -30,7 +31,12 @@ def getVocabFromEnglishDictionary():
 
 
 def testUnicode():
-    print u'》'
+    with open('../data/hello', 'r') as reader:
+        lines = reader.readlines()
+    for line in lines:
+        print line
+    with codecs.open('../data/helloutf', 'w', 'utf-8') as writer:
+        writer.writelines(lines)
 
 
 if __name__ == '__main__':

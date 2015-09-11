@@ -67,6 +67,8 @@ def loadBilingualDictionary(bilingual_dict_file):
     # building english to chinese dictionary
     for chword, engwords in ch2eng.iteritems():
         for engword in engwords:
+            uengword = engword.decode('utf-8')
+            engword = uengword.encode('ascii', 'ignore')
             if engword not in eng2ch:
                 eng2ch[engword] = set()
                 eng2ch[engword].add(chword)
