@@ -34,6 +34,8 @@ def word_filter(word):
     if re.match(pattern, word):
         return ['NUMBER']
 
+    return [word]
+
 
 def preprocessEnglishCorpus(CorpusFile, preprocessedFile):
     """
@@ -46,8 +48,9 @@ def preprocessEnglishCorpus(CorpusFile, preprocessedFile):
     reader = open(CorpusFile, 'r')
     buffsize = 250000000
     buffcount = 0
-    outputbuffer = []
+    open(preprocessedFile, 'w').close()
     while True:
+        outputbuffer = []
         lines = reader.readlines(buffsize)
         if not lines:
             break
@@ -56,10 +59,14 @@ def preprocessEnglishCorpus(CorpusFile, preprocessedFile):
             print 'building with ' + str(buffcount) + ' buffer.....'
         for line in lines:
             words = line.split()
+            newwords = []
             for word in words:
-                word_filter(word)
-
+                newwords.extend(word_filter(word))
+            outputbuffer.append(' '.join(newwords) + '\n')
+        print 'writing buffer...'
+        with open(preprocessedFile, 'a') as writer:
+            writer.writelines(outputbuffer)
     reader.close()
 
 if __name__ == '__main__':
-    preprocessEnglishCorpus('../data/', '../exp/')
+    preprocessEnglishCorpus('../data/1bwlmb', '../data/pre_1bwlmb')
