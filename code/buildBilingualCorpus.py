@@ -15,7 +15,7 @@ def chinese_word_filter(word):
     return: a list of seperated words. [] if word is to be removed.
     """
     # punctuations like [,.-'"/;]
-    if word in chinese_punctuation:
+    if word in chinese_punctuation or word in "\"'?/[.,-\/#!$%\^&\*;:{}=\-_`~()]/":
         return []
 
     # filter for url
@@ -105,10 +105,10 @@ def preprocessEnglishCorpus(CorpusFile, preprocessedFile):
 
 def preprocessChineseCorpus(CorpusFile, preprocessedFile):
     """
-    func: preprocess corpus
-    params: CorpusFile: corpus file path
-    params: preprocessedFile: the output preprocessed file
-    return: n/a
+    :func: preprocess corpus
+    :param CorpusFile: corpus file path
+    :param preprocessedFile: the output preprocessed file
+    :return n/a
     """
     print 'preprocessing...'
     print 'reading corpus...'
@@ -133,6 +133,17 @@ def preprocessChineseCorpus(CorpusFile, preprocessedFile):
         with codecs.open(preprocessedFile, 'a', 'utf-8') as writer:
             writer.writelines(outputbuffer)
     reader.close()
+
+
+def mixChineseCorpus(CorpusFile, mixedCorpusFile):
+    """
+    :func: substitute Chinese word with translated english word with probability
+    :param CorpusFile: the Chinese corpus file
+    :param mixedCorpusFile: the output mixed corpus file
+    :return: n/a
+    """
+
+
 
 if __name__ == '__main__':
     preprocessChineseCorpus('../data/gigacorpus', '../data/pre_gigacorpus')
