@@ -69,6 +69,9 @@ def english_word_filter(word):
     if re.match(pattern, word):
         return ['NUMBER']
 
+    if word == '\xe2\x80\xa2':
+        return []
+
     return [word]
 
 
@@ -205,7 +208,12 @@ def mixEnglishCorpus(CorpusFile, mixedCorpusFile):
             words = line.split()
             newline = ''.encode('utf-8')
             for word in words:
-                newline += mixing(word, eng2ch).encode('utf-8') + ' '.encode('utf-8')
+                try:
+                    word.decode('ascii')
+                except UnicodeDecodeError:
+                    continue
+                else:
+                    newline += mixing(word, eng2ch) + ' '
             outputbuffer.append(newline.strip() + '\n')
         print 'writing buffer...'
         with codecs.open(mixedCorpusFile, 'a', 'utf-8') as writer:

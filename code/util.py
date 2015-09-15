@@ -16,3 +16,7 @@ def insertDict(key, dictionary):
         dictionary[key] += 1
     else:
         dictionary[key] = 1
+
+
+def is_ascii(s):
+    return all(ord(c) < 128 for c in s)
