@@ -1,5 +1,6 @@
 __author__ = 'yandixia'
 import codecs
+import sys
 
 
 def formatChineseQC(rawfile, targetfile):
@@ -12,7 +13,7 @@ def formatChineseQC(rawfile, targetfile):
         sentence = items[1].strip()
         if clabel[0] == u'\ufeff':
             clabel = clabel[1:]
-            flabel = flabel[1:]
+            flabel = flabel
         if sentence[-1] != u'\uff1f':
             sentence += u'\uff1f'
         formatedlines.append(clabel + ':' + flabel + '\t' + sentence + '\n')
@@ -136,7 +137,7 @@ def getEnglishQCstructure(trainfile, output):
 
 
 def getLabelMapping():
-    with open('label_mapping', 'r') as reader:
+    with open('../data/QC/label_mapping', 'r') as reader:
         lmlines = reader.readlines()
 
     lmidx = 0
@@ -159,7 +160,7 @@ def getLabelMapping():
             chlbl, treclbl = line.split()
             flblmap[chlbl] = treclbl
         else:
-            lmidx = i + 1
+            lmidx += i + 1
             break
 
     delset = set()
@@ -174,20 +175,46 @@ def getLabelMapping():
 
 
 def trimChineseQC(formatedchfile, trimmedfile):
+    """
+    :func delete unwanted labels and map chinese labels to TREC labels
+    :param formatedchfile: formatted chinese QC corpus using formatChineseQC() function
+    :param trimmedfile: the output trimmed file
+    :return: n/a
+    """
     clblmap, flblmap, delset = getLabelMapping()
 
     with codecs.open(formatedchfile, 'r', 'utf-8') as reader:
         instlines = reader.readlines()
 
+    trimmedinstlines = []
+
+    for line in instlines:
+        items = line.split('\t')
+        clbl = items[0].split(':')[0]
+        flbl = items[0]
+        query = items[1]
+        if clbl in clblmap:
+            clbl = clblmap[clbl]
+            flbl = clbl + ':' + items[0].split(':')[1]
+        if flbl in flblmap:
+            flbl = flblmap[flbl]
+        if flbl not in delset:
+            trimmedinstlines.append(flbl + '\t' + query)
+    with codecs.open(trimmedfile, 'w', 'utf-8') as writer:
+        writer.writelines(trimmedinstlines)
+
 
 def rundown():
-    formatChineseQC('Chinese_qc/trainutf8.txt', 'Chinese_qc/formatTrain')
-    formatChineseQC('Chinese_qc/testutf8.txt', 'Chinese_qc/formatTest')
-    formatTRECQC('TREC/train_5500.label', 'TREC/formatTrain')
-    formatTRECQC('TREC/TREC_10.label', 'TREC/formatTest')
+    formatChineseQC('../data/QC/Chinese_qc/trainutf8.txt', '../data/QC/Chinese_qc/formatTrain')
+    formatChineseQC('../data/QC/Chinese_qc/testutf8.txt', '../data/QC/Chinese_qc/formatTest')
+    formatTRECQC('../data/QC/TREC/train_5500.label', '../data/QC/TREC/formatTrain')
+    formatTRECQC('../data/QC/TREC/TREC_10.label', '../data/QC/TREC/formatTest')
 
-    getChineseQCstructure('Chinese_qc/formatTrain', 'Chinese_qc/label_struct')
-    getEnglishQCstructure('TREC/formatTrain', 'TREC/label_struct')
+    trimChineseQC('../data/QC/Chinese_qc/formatTrain', '../data/QC/Chinese_qc/trimchqctrain')
+    trimChineseQC('../data/QC/Chinese_qc/formatTest', '../data/QC/Chinese_qc/trimchqctest')
+
+    getChineseQCstructure('../data/QC/Chinese_qc/trimchqctrain', '../data/QC/Chinese_qc/label_struct')
+    getEnglishQCstructure('../data/QC/TREC/formatTrain', '../data/QC/TREC/label_struct')
 
 
 if __name__ == "__main__":
