@@ -258,10 +258,9 @@ def rundown():
     coreNLPChineseSegment('../data/QC/Chinese_qc/trimchqctest', '../data/QC/Chinese_qc/finaltest')
 
     # getChineseQCstructure('../data/QC/Chinese_qc/trimchqctrain', '../data/QC/Chinese_qc/label_struct')
-    #getEnglishQCstructure('../data/QC/TREC/formatTrain', '../data/QC/TREC/label_struct')
+    # getEnglishQCstructure('../data/QC/TREC/formatTrain', '../data/QC/TREC/label_struct')
 
 
 if __name__ == "__main__":
     rundown()
-    #coreNLPChineseSegment('../data/QC/Chinese_qc/trimchqctrain', None)
 
