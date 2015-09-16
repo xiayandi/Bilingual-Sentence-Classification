@@ -1,6 +1,8 @@
 __author__ = 'yandixia'
 import codecs
 import sys
+import os
+import xml.etree.ElementTree as ET
 
 
 def formatChineseQC(rawfile, targetfile):
@@ -50,7 +52,7 @@ def get_chinese_raw_sentences_labels(datafile):
         datalines = reader.readlines()
     for line in datalines:
         labels = line.split('\t')[0]
-        sentence = line.split('\t')[1]
+        sentence = line.split('\t')[1].strip()
         coarse_label = labels.split(':')[0]
         fine_label = labels
         sentences.append(sentence)
@@ -101,7 +103,7 @@ def get_english_raw_sentences_labels(datafile):
         datalines = reader.readlines()
     for line in datalines:
         labels = line.split('\t')[0]
-        sentence = line.split('\t')[1]
+        sentence = line.split('\t')[1].strip()
         coarse_label = labels.split(':')[0]
         fine_label = labels
         sentences.append(sentence)
@@ -204,6 +206,45 @@ def trimChineseQC(formatedchfile, trimmedfile):
         writer.writelines(trimmedinstlines)
 
 
+def coreNLPChineseSegment(formattedfile, segfile):
+    """
+    :func call coreNLP software to segment chinese corpus
+    :param formattedfile: the formatted file in the same format in formatChineseQC()
+    :param segfile: the output segmented corpus
+    :return: n/a
+    """
+    # output raw queries
+    queris, clbls, flbls = get_chinese_raw_sentences_labels(formattedfile)
+
+    rawsenttmpfile = '../exp/rawsent.tmp'
+    parsedsentfile = '../exp/rawsent.tmp.xml'
+    with codecs.open(rawsenttmpfile, 'w', 'utf-8') as writer:
+        for q in queris:
+            writer.write(q + '\n')
+
+    command = 'bash coreNLPchinese.sh ' + rawsenttmpfile
+    os.system(command)
+
+    # parsing the output of coreNLP
+    tree = ET.parse(parsedsentfile)
+    root = tree.getroot()
+    segsents = []
+
+    for sentence in root.iter('sentence'):
+        words = []
+        for token in sentence.iter('token'):
+            word = token.find('word').text
+            words.append(word)
+        segsents.append(' '.join(words))
+
+    seginstlines = []
+    for i, sent in enumerate(segsents):
+        seginstlines.append(flbls[i] + '\t' + sent + '\n')
+
+    with codecs.open(segfile, 'w', 'utf-8') as writer:
+        writer.writelines(seginstlines)
+
+
 def rundown():
     formatChineseQC('../data/QC/Chinese_qc/trainutf8.txt', '../data/QC/Chinese_qc/formatTrain')
     formatChineseQC('../data/QC/Chinese_qc/testutf8.txt', '../data/QC/Chinese_qc/formatTest')
@@ -213,10 +254,14 @@ def rundown():
     trimChineseQC('../data/QC/Chinese_qc/formatTrain', '../data/QC/Chinese_qc/trimchqctrain')
     trimChineseQC('../data/QC/Chinese_qc/formatTest', '../data/QC/Chinese_qc/trimchqctest')
 
-    getChineseQCstructure('../data/QC/Chinese_qc/trimchqctrain', '../data/QC/Chinese_qc/label_struct')
-    getEnglishQCstructure('../data/QC/TREC/formatTrain', '../data/QC/TREC/label_struct')
+    coreNLPChineseSegment('../data/QC/Chinese_qc/trimchqctrain', '../data/QC/Chinese_qc/finaltrain')
+    coreNLPChineseSegment('../data/QC/Chinese_qc/trimchqctest', '../data/QC/Chinese_qc/finaltest')
+
+    # getChineseQCstructure('../data/QC/Chinese_qc/trimchqctrain', '../data/QC/Chinese_qc/label_struct')
+    #getEnglishQCstructure('../data/QC/TREC/formatTrain', '../data/QC/TREC/label_struct')
 
 
 if __name__ == "__main__":
     rundown()
+    #coreNLPChineseSegment('../data/QC/Chinese_qc/trimchqctrain', None)
 
