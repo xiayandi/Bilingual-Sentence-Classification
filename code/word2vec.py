@@ -63,10 +63,10 @@ def construct_w2v(emb_dim, w2vfile, w2vout):
 
 def rundown():
     rawlist = [
-        '../data/w2v_250.txt',
+        '../data/blg250.txt',
     ]
     processedlist = [
-        '../exp/ch_250.pkl',
+        '../exp/blg250.pkl',
     ]
     for rf, pf in zip(rawlist, processedlist):
         outputAllVocabList()
