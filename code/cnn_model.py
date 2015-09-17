@@ -45,6 +45,7 @@ def train_joint_conv_net(
         w2vFile,
         dataFile,
         labelStructureFile,
+        cfswitch,
         filter_h=3,
         n_epochs=1000,
         batch_size=50,
@@ -84,33 +85,34 @@ def train_joint_conv_net(
     """
     datasets = load(dataFile)
     clbl_vec, flbl_vec = process_qc.label_structure(labelStructureFile)
-    label_c_size = len(clbl_vec)
-    label_f_size = len(flbl_vec)
     trainDataSetIndex = 0
     testDataSetIndex = 1
-    validDataSetIndex = 2
     sentenceIndex = 0
     clblIndex = 1  # coarse label(clbl) index in the dataset structure
     flblIndex = 2  # fine label(flbl) index
     maskIndex = 3  # a mask matrix representing the length of the sentences, detail in process_data.py
 
+    if cfswitch == 'c':
+        lblIndex = clblIndex
+        label_vec = clbl_vec
+    elif cfswitch == 'f':
+        lblIndex = flblIndex
+        label_vec = flbl_vec
+    else:
+        print 'wrong arg value in: cfswtich!'
+        sys.exit()
+
+    label_size = len(label_vec)
+
     # train part
-    train_c_y = shared_store(datasets[trainDataSetIndex][clblIndex])
-    train_f_y = shared_store(datasets[trainDataSetIndex][flblIndex])
+    train_y = shared_store(datasets[trainDataSetIndex][lblIndex])
     train_x = shared_store(datasets[trainDataSetIndex][sentenceIndex])
     train_mask = datasets[trainDataSetIndex][maskIndex]
 
     # test part
-    gold_test_c_y = datasets[testDataSetIndex][clblIndex]
-    gold_test_f_y = datasets[testDataSetIndex][flblIndex]
+    gold_test_y = datasets[testDataSetIndex][lblIndex]
     test_x = shared_store(datasets[testDataSetIndex][sentenceIndex])
     test_mask = datasets[testDataSetIndex][maskIndex]
-
-    # valid part
-    gold_valid_c_y = datasets[validDataSetIndex][clblIndex]
-    gold_valid_f_y = datasets[validDataSetIndex][flblIndex]
-    valid_x = shared_store(datasets[validDataSetIndex][sentenceIndex])
-    valid_mask = datasets[validDataSetIndex][maskIndex]
 
     train_size = len(datasets[trainDataSetIndex][sentenceIndex])
 
@@ -128,11 +130,8 @@ def train_joint_conv_net(
     """
     batch_index = T.lvector('hello_index')
     x = T.imatrix('hello_x')
-    y_c = T.ivector('hello_y_c')
-    y_f = T.ivector('hello_y_f')
+    y = T.ivector('hello_y')
     batch_max_l = T.iscalar('hello_max_len')
-    test_idx = T.iscalar('hello_test_x')
-    single_l = T.iscalar('hello_sent_mask')
     w2v_shared = theano.shared(value=w2v, name='w2v', borrow=True)
     rng = np.random.RandomState(3435)
 
@@ -146,23 +145,16 @@ def train_joint_conv_net(
         image_shape=None
     )
 
-    c_classifier = MLPDropout(
+    classifier = MLPDropout(
         rng=rng,
         input=conv_layer.output.flatten(2),
-        layer_sizes=[feature_maps, mlphiddensize, label_c_size],
-        dropout_rate=0.5
-    )
-
-    f_classifier = MLPDropout(
-        rng=rng,
-        input=conv_layer.output.flatten(2),
-        layer_sizes=[feature_maps, mlphiddensize, label_f_size],
+        layer_sizes=[feature_maps, mlphiddensize, label_size],
         dropout_rate=0.5
     )
 
     # params = [w2v_shared]+conv_layer.params+classifier.params
-    params = conv_layer.params + c_classifier.params + f_classifier.params
-    cost = c_classifier.negative_log_likelihood(y_c) + f_classifier.negative_log_likelihood(y_f)
+    params = conv_layer.params + classifier.params
+    cost = classifier.negative_log_likelihood(y)
     updates = sgd_updates_adadelta(params, cost)
 
     n_batches = train_x.shape.eval()[0] / batch_size
@@ -177,40 +169,15 @@ def train_joint_conv_net(
         updates=updates,
         givens={
             x: train_x[batch_index][:, :batch_max_l],
-            y_c: train_c_y[batch_index],
-            y_f: train_f_y[batch_index],
+            y: train_y[batch_index],
         },
     )
 
-    test_c_model = theano.function(
-        inputs=[test_idx, single_l],
-        outputs=c_classifier.y_preds,
+    test_model = theano.function(
+        inputs=[],
+        outputs=classifier.y_preds,
         givens={
-            x: test_x[test_idx][:, :single_l],
-        }
-    )
-
-    test_f_model = theano.function(
-        inputs=[test_idx, single_l],
-        outputs=f_classifier.y_preds,
-        givens={
-            x: test_x[test_idx][:, :single_l],
-        }
-    )
-
-    valid_c_model = theano.function(
-        inputs=[test_idx, single_l],
-        outputs=c_classifier.y_preds,
-        givens={
-            x: test_x[test_idx][:, :single_l],
-        }
-    )
-
-    valid_f_model = theano.function(
-        inputs=[test_idx, single_l],
-        outputs=f_classifier.y_preds,
-        givens={
-            x: test_x[test_idx][:, :single_l],
+            x: test_x,
         }
     )
 
@@ -219,20 +186,14 @@ def train_joint_conv_net(
     """
     print 'training....'
     bestep = 0
-    bestacc_fc = 0.
-    bestacc_f = 0. # best result on valid set
+    bestacc = 0.
     epoch = 0
-    test_acc_c = 0.
-    test_acc_f = 0.
 
     open(logFile, 'w').close()
 
     # create gold value sequences, required by the eval.py
-    with open('../exp/goldcrs', 'w') as writer:
-        for lbl in gold_test_c_y:
-            writer.write(str(lbl) + '\n')
-    with open('../exp/goldfrs', 'w') as writer:
-        for lbl in gold_test_f_y:
+    with open('../exp/goldrs', 'w') as writer:
+        for lbl in gold_test_y:
             writer.write(str(lbl) + '\n')
 
     # training loop
@@ -246,33 +207,16 @@ def train_joint_conv_net(
             max_l = 2 * (filter_h - 1) + train_mask[random_indexes].max()
             train_cost = train_model(random_indexes, max_l)
 
-        valid_c_y_preds = []
-        valid_f_y_preds = []
-        for idx in xrange(len(datasets[validDataSetIndex][sentenceIndex])):
-            valid_c_y_preds.append(valid_c_model(idx, max_sent_l))  # valid_mask[idx]+2*(filter_h-1)))
-            valid_f_y_preds.append(valid_f_model(idx, max_sent_l))  # valid_mask[idx]+2*(filter_h-1)))
-        valid_acc_c = eval.accuracy(gold_valid_c_y, valid_c_y_preds)
-        valid_acc_f = eval.accuracy(gold_valid_f_y, valid_f_y_preds)
-        logging(valid_acc_c, valid_acc_f, epoch, logFile)
+        test_y_preds = test_model(max_sent_l)  # test_mask[idx]+2*(filter_h-1)))
+        test_acc = eval.accuracy(gold_test_y, test_y_preds)
+        if test_acc > bestacc:
+            bestacc = test_acc
+            bestep = epoch
 
-        if valid_acc_f > bestacc_f or (valid_acc_f == bestacc_f and valid_acc_c > bestacc_fc):
-            test_c_y_preds = []
-            test_f_y_preds = []
-            for idx in xrange(len(datasets[testDataSetIndex][sentenceIndex])):
-                test_c_y_preds.append(test_c_model(idx, max_sent_l))  # test_mask[idx]+2*(filter_h-1)))
-                test_f_y_preds.append(test_f_model(idx, max_sent_l))  # test_mask[idx]+2*(filter_h-1)))
-            test_acc_c = eval.accuracy(gold_test_c_y, test_c_y_preds)
-            test_acc_f = eval.accuracy(gold_test_f_y, test_f_y_preds)
-            logging(test_acc_c, test_acc_f, epoch, logTest)
+        print 'accuracy is: ' + str(test_acc)
+        print 'current best prediction accuracy is: ' + str(bestacc) + ' at epoch ' + str(bestep)
 
-        print 'coarse label prediction accuracy of valid set is: ' + str(valid_acc_c)
-        print 'fine label prediction accuracy of valid set is: ' + str(valid_acc_f)
-        print 'current best fine label prediction accuracy is: ' + str(bestacc_f) + ' at epoch ' + str(
-            bestep) + ' with coarse label prediction accurary: ' + str(bestacc_fc)
-        print 'coarse label prediction accuracy of test set is: ' + str(test_acc_c)
-        print 'fine label prediction accuracy of test set is: ' + str(test_acc_f)
-
-    return bestacc_fc, bestacc_f
+    return bestacc
 
 
 def logging(acc_c, acc_f, epoch, logfile):
@@ -335,6 +279,7 @@ if __name__ == '__main__':
     w2vFile = '../exp/ch_250.pkl'
     dataFile = '../exp/dataset_ch_qc.pkl'
     labelStructureFile = '../exp/label_struct_ch_qc'
+    cfswitch = 'c'
     filter_h=3
     n_epochs=1000
     batch_size=50
@@ -347,6 +292,7 @@ if __name__ == '__main__':
         w2vFile=w2vFile,
         dataFile=dataFile,
         labelStructureFile=labelStructureFile,
+        cfswitch=cfswitch,
         filter_h=filter_h,
         n_epochs=n_epochs,
         batch_size=batch_size,
