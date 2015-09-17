@@ -276,7 +276,7 @@ def as_floatX(variable):
 
 
 if __name__ == '__main__':
-    w2vFile = '../exp/ch_250.pkl'
+    w2vFile = '../exp/blg250.pkl'
     dataFile = '../exp/dataset_ch_qc.pkl'
     labelStructureFile = '../exp/label_struct_ch_qc'
     cfswitch = 'f'
