@@ -279,7 +279,7 @@ if __name__ == '__main__':
     w2vFile = '../exp/blg250.pkl'
     dataFile = '../exp/dataset_ch_qc.pkl'
     labelStructureFile = '../exp/label_struct_ch_qc'
-    cfswitch = 'f'
+    cfswitch = 'c'
     filter_h=3
     n_epochs=1000
     batch_size=50
