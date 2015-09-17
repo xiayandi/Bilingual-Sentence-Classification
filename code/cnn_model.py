@@ -207,7 +207,7 @@ def train_joint_conv_net(
             max_l = 2 * (filter_h - 1) + train_mask[random_indexes].max()
             train_cost = train_model(random_indexes, max_l)
 
-        test_y_preds = test_model(max_sent_l)  # test_mask[idx]+2*(filter_h-1)))
+        test_y_preds = test_model()  # test_mask[idx]+2*(filter_h-1)))
         test_acc = eval.accuracy(gold_test_y, test_y_preds)
         if test_acc > bestacc:
             bestacc = test_acc
