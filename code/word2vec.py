@@ -7,9 +7,28 @@ import codecs
 import sys
 
 
-def outputAllVocabList():
-    trainFile = '../data/QC/Chinese_qc/finaltrain'
-    testFile = '../data/QC/Chinese_qc/finaltest'
+def outputAllVocabList(filelist, encodings, vocabFile):
+    """
+    :func extracting the vocab in list of files and output the vocab to vocabFile
+    :param filelist: a list of file paths
+    :param encodings: the corresponding encodings for each file
+    :param vocabFile: the output vocab file
+    :return: n/a
+    """
+    cheatvocab = []
+    for i, foo in enumerate(filelist):
+        with codecs.open(foo, 'r', encoding=encodings[i]) as reader:
+            lines = reader.readlines()
+        for line in lines:
+            cheatvocab.extend(line.split('\t')[1].split())
+    sortedcheatvocab = sorted(set(cheatvocab))
+    with codecs.open(vocabFile, 'w', 'utf-8') as writer:
+        writer.write('PADDING' + '\n')  # add padding into vocab
+        for word in sortedcheatvocab:
+            writer.write(word + '\n')
+
+
+def _outputAllVocabList(trainFile, testFile, vocabFile):
     cheatvocab = []
     with codecs.open(trainFile, 'r', 'utf-8') as reader:
         lines = reader.readlines()
@@ -20,7 +39,7 @@ def outputAllVocabList():
     for line in lines:
         cheatvocab.extend(line.split('\t')[1].split())
     sortedcheatvocab = sorted(set(cheatvocab))
-    with codecs.open('../exp/vocab_ch_qc.lst', 'w', 'utf-8') as writer:
+    with codecs.open(vocabFile, 'w', 'utf-8') as writer:
         writer.write('PADDING' + '\n')  # add padding into vocab
         for word in sortedcheatvocab:
             writer.write(word + '\n')
@@ -32,7 +51,7 @@ def construct_w2v(emb_dim, w2vfile, w2vout):
     print 'constructing w2v dictionary....'
     with codecs.open(w2vfile, 'r') as reader:
         w2vlines = reader.readlines()
-    with codecs.open('../exp/vocab_ch_qc.lst', 'r') as reader:
+    with codecs.open('../exp/vocab_bi_qc.lst', 'r') as reader:
         allvocablines = reader.readlines()
 
     # create word to all vocab index dictionary
@@ -68,8 +87,13 @@ def rundown():
     processedlist = [
         '../exp/blg250.pkl',
     ]
+    trainFile = '../data/QC/TREC/formatTrain'
+    testFile = '../data/QC/Chinese_qc/finaltest'
+    filelist = [trainFile, testFile]
+    encodings = [None, 'utf-8']
+    vocabFile = '../exp/vocab_bi_qc.lst'
     for rf, pf in zip(rawlist, processedlist):
-        outputAllVocabList()
+        outputAllVocabList(filelist, encodings, vocabFile)
         construct_w2v(250, rf, pf)
 
 

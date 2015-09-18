@@ -225,15 +225,15 @@ def datasetConstructRundown():
     This is a demo script for showing how to use the defined functions to produce data
     that is required by CNN model.
     """
-    train_file = '../data/QC/Chinese_qc/finaltrain'
+    train_file = '../data/QC/TREC/formatTrain'
     test_file = '../data/QC/Chinese_qc/finaltest'
     # you can add valid data set here
     # valid_file = 'the/path/to/valid/set/file'
 
     label_struct_file = '../exp/label_struct_ch_qc'
-    vocab_file = '../exp/vocab_ch_qc.lst'
+    vocab_file = '../exp/vocab_bi_qc.lst'
     filter_h = 3  # window size
-    outputDataFile = '../exp/dataset_ch_qc.pkl'
+    outputDataFile = '../exp/dataset_bi_qc.pkl'
 
     # output label structure file and get the label to index hash map
     output_label_structure(train_file, label_struct_file)
