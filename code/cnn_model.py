@@ -277,10 +277,10 @@ def as_floatX(variable):
 
 if __name__ == '__main__':
     w2vFile = '../exp/blg250.pkl'
-    dataFile = '../exp/dataset_ch_qc.pkl'
-    labelStructureFile = '../exp/label_struct_ch_qc'
-    cfswitch = 'f'
-    filter_h=3
+    dataFile = '../exp/dataset_bi_qc.pkl'
+    labelStructureFile = '../exp/label_struct_bi_qc'
+    cfswitch = 'c'
+    filter_h = 5
     n_epochs=1000
     batch_size=50
     feature_maps=150

@@ -31,12 +31,22 @@ def getVocabFromEnglishDictionary():
 
 
 def testUnicode():
-    with open('../data/hello', 'r') as reader:
+    with open('../data/w2v_250.txt', 'r') as reader:
         lines = reader.readlines()
+    with open('../exp/vocab_ch_qc.lst', 'r') as reader:
+        vlines = reader.readlines()
+    w2idx = {}
+    count = 0
+    for i in xrange(len(vlines)):
+        wd = vlines[i].split()[0]
+        w2idx[wd] = i
     for line in lines:
-        print line
-    with codecs.open('../data/helloutf', 'w', 'utf-8') as writer:
-        writer.writelines(lines)
+        items = line.split()
+        wd = items[0]
+        if wd in w2idx:
+            count += 1
+            print wd
+    print count
 
 
 if __name__ == '__main__':

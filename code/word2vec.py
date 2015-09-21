@@ -15,43 +15,26 @@ def outputAllVocabList(filelist, encodings, vocabFile):
     :param vocabFile: the output vocab file
     :return: n/a
     """
-    cheatvocab = []
+    vocab = []
     for i, foo in enumerate(filelist):
         with codecs.open(foo, 'r', encoding=encodings[i]) as reader:
             lines = reader.readlines()
         for line in lines:
-            cheatvocab.extend(line.split('\t')[1].split())
-    sortedcheatvocab = sorted(set(cheatvocab))
+            vocab.extend(line.split('\t')[1].split())
+    sortedcheatvocab = sorted(set(vocab))
     with codecs.open(vocabFile, 'w', 'utf-8') as writer:
         writer.write('PADDING' + '\n')  # add padding into vocab
         for word in sortedcheatvocab:
             writer.write(word + '\n')
 
 
-def _outputAllVocabList(trainFile, testFile, vocabFile):
-    cheatvocab = []
-    with codecs.open(trainFile, 'r', 'utf-8') as reader:
-        lines = reader.readlines()
-    for line in lines:
-        cheatvocab.extend(line.split('\t')[1].split())
-    with codecs.open(testFile, 'r', 'utf-8') as reader:
-        lines = reader.readlines()
-    for line in lines:
-        cheatvocab.extend(line.split('\t')[1].split())
-    sortedcheatvocab = sorted(set(cheatvocab))
-    with codecs.open(vocabFile, 'w', 'utf-8') as writer:
-        writer.write('PADDING' + '\n')  # add padding into vocab
-        for word in sortedcheatvocab:
-            writer.write(word + '\n')
-
-
-def construct_w2v(emb_dim, w2vfile, w2vout):
+def construct_w2v(emb_dim, vocablist, w2vfile, w2vout):
     # construct the word embedding dictionary
     # and store in numpy array
     print 'constructing w2v dictionary....'
-    with codecs.open(w2vfile, 'r') as reader:
+    with open(w2vfile, 'r') as reader:
         w2vlines = reader.readlines()
-    with codecs.open('../exp/vocab_bi_qc.lst', 'r') as reader:
+    with open(vocablist, 'r') as reader:
         allvocablines = reader.readlines()
 
     # create word to all vocab index dictionary
@@ -81,20 +64,15 @@ def construct_w2v(emb_dim, w2vfile, w2vout):
 
 
 def rundown():
-    rawlist = [
-        '../data/blg250.txt',
-    ]
-    processedlist = [
-        '../exp/blg250.pkl',
-    ]
+    allw2v = '../data/blg250.txt'
+    trimmedw2v = '../exp/blg250.pkl'
     trainFile = '../data/QC/TREC/formatTrain'
     testFile = '../data/QC/Chinese_qc/finaltest'
     filelist = [trainFile, testFile]
     encodings = [None, 'utf-8']
     vocabFile = '../exp/vocab_bi_qc.lst'
-    for rf, pf in zip(rawlist, processedlist):
-        outputAllVocabList(filelist, encodings, vocabFile)
-        construct_w2v(250, rf, pf)
+    outputAllVocabList(filelist, encodings, vocabFile)
+    construct_w2v(250, vocabFile, allw2v, trimmedw2v)
 
 
 if __name__ == '__main__':

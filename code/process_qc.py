@@ -230,9 +230,9 @@ def datasetConstructRundown():
     # you can add valid data set here
     # valid_file = 'the/path/to/valid/set/file'
 
-    label_struct_file = '../exp/label_struct_ch_qc'
+    label_struct_file = '../exp/label_struct_bi_qc'
     vocab_file = '../exp/vocab_bi_qc.lst'
-    filter_h = 3  # window size
+    filter_h = 5  # window size
     outputDataFile = '../exp/dataset_bi_qc.pkl'
 
     # output label structure file and get the label to index hash map
