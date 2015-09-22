@@ -2,52 +2,53 @@
 this module is for test only
 """
 import codecs
+import xml.etree.ElementTree as ET
+import sys
 
 
-def getVocabFromEnglishDictionary():
-    vocablst = set()
-    with open('../data/eng_dict_desc.lst', 'r') as reader:
-        datalines = reader.readlines()
-    for line in datalines:
-        if line.strip():
-            items = line.split()
-            if len(items) < 2:
-                continue
-            if items[0] == 'Usage':
-                continue
-            if items[0][0] == '-' or items[0][-1] == '-':
-                continue
-            if items[0][0] == '\'':
-                continue
-            if items[0][-1] in [str(i) for i in xrange(10)]:
-                vocablst.add(items[0][:-1].lower())
-            else:
-                vocablst.add(items[0].lower())
-    vocablst.add('usage')
-    vocablst = sorted(list(vocablst))
-    with open('../exp/dict.lst', 'w') as writer:
-        for word in vocablst:
-            writer.write(word + '\n')
+def outputDependencyTriples(coreNLPParseFile, depTripleOutputFile):
+    """
+    :func extract dependency triples from coreNLP results and then output
+            the triples to file
+    :param coreNLPParseFile: the coreNLP result file
+    :param depTripleOutputFile: triple output file
+    :return: n/a
+    """
+    print 'extracting dependency triples from coreNLP result files...'
+    tree = ET.parse(coreNLPParseFile)
+    root = tree.getroot()
+    sentences_deps = []
+    for sentence in root.iter('sentence'):
+        basicdep = sentence.find("dependencies[@type='basic-dependencies']")
+        triples = ''
+        for dep in basicdep.iter('dep'):
+            dep_type = dep.attrib['type']
+            dep_governor_idx = dep.find('governor').attrib['idx']
+            dep_dependent_idx = dep.find('dependent').attrib['idx']
+            triples += '(' + dep_governor_idx + ',' + dep_type + ',' + dep_dependent_idx + ')@'
+        sentences_deps.append(triples.rstrip('@') + '\n')
+    with codecs.open(depTripleOutputFile, 'w', 'utf-8') as writer:
+        writer.writelines(sentences_deps)
 
 
-def testUnicode():
-    with open('../data/w2v_250.txt', 'r') as reader:
-        lines = reader.readlines()
-    with open('../exp/vocab_ch_qc.lst', 'r') as reader:
-        vlines = reader.readlines()
-    w2idx = {}
-    count = 0
-    for i in xrange(len(vlines)):
-        wd = vlines[i].split()[0]
-        w2idx[wd] = i
-    for line in lines:
-        items = line.split()
-        wd = items[0]
-        if wd in w2idx:
-            count += 1
-            print wd
-    print count
+def readInDependencyTriples(depTripleFile):
+    """
+    :func read dependency triples into memory from triple file
+    :param depTripleFile: dependency triple file
+    :return: a sentence level list of dependency triples
+    """
+    with open(depTripleFile, 'r') as reader:
+        triplelines = reader.readlines()
+    sentences_triples = []
+    for line in triplelines:
+        triples = []
+        str_triples = line.rstrip().split('@')
+        for str_triple in str_triples:
+            g, t, d = str_triple.strip('()').split(',')  # g:governor, t:type, d:dependent
+            triples.append((int(g), t, int(d)))
+        sentences_triples.append(triples)
+    return sentences_triples
 
 
 if __name__ == '__main__':
-    testUnicode()
+    print 'test'
