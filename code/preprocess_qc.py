@@ -206,27 +206,19 @@ def trimChineseQC(formatedchfile, trimmedfile):
         writer.writelines(trimmedinstlines)
 
 
-def coreNLPChineseSegment(formattedfile, segfile):
+def coreNLPChineseSegment(formattedfile, segfile, coreNLPresultFile):
     """
     :func call coreNLP software to segment chinese corpus
     :param formattedfile: the formatted file in the same format in formatChineseQC()
     :param segfile: the output segmented corpus
+    :param coreNLPresultFile: the parsing result corresponding to formattedfile
     :return: n/a
     """
     # output raw queries
     queris, clbls, flbls = get_chinese_raw_sentences_labels(formattedfile)
 
-    rawsenttmpfile = '../exp/rawsent.tmp'
-    parsedsentfile = '../exp/rawsent.tmp.xml'
-    with codecs.open(rawsenttmpfile, 'w', 'utf-8') as writer:
-        for q in queris:
-            writer.write(q + '\n')
-
-    command = 'bash coreNLPchinese.sh ' + rawsenttmpfile
-    os.system(command)
-
     # parsing the output of coreNLP
-    tree = ET.parse(parsedsentfile)
+    tree = ET.parse(coreNLPresultFile)
     root = tree.getroot()
     segsents = []
 
@@ -261,6 +253,30 @@ def coreNLPparser(formattedFile, lang, rawsentfile):
         os.system(command)
 
 
+def outputDependencyTriples(coreNLPParseFile, depTripleOutputFile):
+    """
+    :func extract dependency triples from coreNLP results and then output
+            the triples to file
+    :param coreNLPParseFile: the coreNLP result file
+    :param depTripleOutputFile: triple output file
+    :return: n/a
+    """
+    print 'extracting dependency triples from coreNLP result files...'
+    tree = ET.parse(coreNLPParseFile)
+    root = tree.getroot()
+    sentences_deps = []
+    for sentence in root.iter('sentence'):
+        basicdep = sentence.find("dependencies[@type='basic-dependencies']")
+        triples = ''
+        for dep in basicdep.iter('dep'):
+            dep_type = dep.attrib['type']
+            dep_governor_idx = dep.find('governor').attrib['idx']
+            dep_dependent_idx = dep.find('dependent').attrib['idx']
+            triples += '(' + dep_governor_idx + ',' + dep_type + ',' + dep_dependent_idx + ')@'
+        sentences_deps.append(triples.rstrip('@') + '\n')
+    with codecs.open(depTripleOutputFile, 'w', 'utf-8') as writer:
+        writer.writelines(sentences_deps)
+
 
 def rundown():
     formatChineseQC('../data/QC/Chinese_qc/trainutf8.txt', '../data/QC/Chinese_qc/formatTrain')
@@ -271,16 +287,23 @@ def rundown():
     trimChineseQC('../data/QC/Chinese_qc/formatTrain', '../data/QC/Chinese_qc/trimchqctrain')
     trimChineseQC('../data/QC/Chinese_qc/formatTest', '../data/QC/Chinese_qc/trimchqctest')
 
-    coreNLPChineseSegment('../data/QC/Chinese_qc/trimchqctrain', '../data/QC/Chinese_qc/finaltrain')
-    coreNLPChineseSegment('../data/QC/Chinese_qc/trimchqctest', '../data/QC/Chinese_qc/finaltest')
-
     coreNLPparser('../data/QC/Chinese_qc/trimchqctrain', 'ch', '../exp/ch_qc_train')
     coreNLPparser('../data/QC/Chinese_qc/trimchqctest', 'ch', '../exp/ch_qc_test')
     coreNLPparser('../data/QC/TREC/formatTrain', 'eng', '../exp/eng_qc_train')
     coreNLPparser('../data/QC/TREC/formatTest', 'eng', '../exp/eng_qc_test')
 
-    # getChineseQCstructure('../data/QC/Chinese_qc/trimchqctrain', '../data/QC/Chinese_qc/label_struct')
-    # getEnglishQCstructure('../data/QC/TREC/formatTrain', '../data/QC/TREC/label_struct')
+    coreNLPChineseSegment('../data/QC/Chinese_qc/trimchqctrain',
+                          '../data/QC/Chinese_qc/finaltrain',
+                          '../exp/ch_qc_train.xml')
+    coreNLPChineseSegment('../data/QC/Chinese_qc/trimchqctest',
+                          '../data/QC/Chinese_qc/finaltest',
+                          '../exp/ch_qc_test.xml')
+
+    outputDependencyTriples('../exp/ch_qc_train.xml', '../exp/ch_qc_train_dep')
+    outputDependencyTriples('../exp/ch_qc_test.xml', '../exp/ch_qc_test_dep')
+    outputDependencyTriples('../exp/eng_qc_train.xml', '../exp/eng_qc_train_dep')
+    outputDependencyTriples('../exp/eng_qc_test.xml', '../exp/eng_qc_test_dep')
+
 
 
 if __name__ == "__main__":
