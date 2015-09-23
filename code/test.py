@@ -65,11 +65,39 @@ def getTreeStructure(sentTriples):
         else:
             g2d[triple[0]] = [triple[2]]
         if triple[2] in d2g:
-            print 'hello'
             d2g[triple[2]].append(triple[0])
         else:
             d2g[triple[2]] = [triple[0]]
     return g2d, d2g
+
+
+def getAncestors(idx, level, d2g):
+    """
+    :func find a list of ancestors for the given idx
+    :param idx: node idx
+    :param level: how many ancestors to find, level 1 return node idx's parent
+    :param g2d: governor to dependent mapping
+    :param d2g: dependent to governor mapping
+    :return: the list of ancestors if level is fulfilled, otherwise None
+    """
+    if level == 1:
+        if idx in d2g:
+            return d2g[idx][0]
+        else:
+            return None
+
+    if idx in d2g:
+        gs = d2g[idx]
+        for g in gs:
+            ga = getAncestors(g, level-1, d2g)
+            if ga is None:
+                return None
+            else:
+                return g+ga
+    else:
+        return None
+
+
 
 
 def testRundown():
