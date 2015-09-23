@@ -245,6 +245,23 @@ def coreNLPChineseSegment(formattedfile, segfile):
         writer.writelines(seginstlines)
 
 
+def coreNLPparser(formattedFile, lang, rawsentfile):
+    # output raw queries
+    queris, clbls, flbls = get_chinese_raw_sentences_labels(formattedFile)
+
+    with codecs.open(rawsentfile, 'w', 'utf-8') as writer:
+        for q in queris:
+            writer.write(q + '\n')
+
+    if lang == 'ch':
+        command = 'bash coreNLPchinese.sh ' + rawsentfile
+        os.system(command)
+    else:
+        command = 'bash coreNLPenglish.sh ' + rawsentfile
+        os.system(command)
+
+
+
 def rundown():
     formatChineseQC('../data/QC/Chinese_qc/trainutf8.txt', '../data/QC/Chinese_qc/formatTrain')
     formatChineseQC('../data/QC/Chinese_qc/testutf8.txt', '../data/QC/Chinese_qc/formatTest')
@@ -256,6 +273,11 @@ def rundown():
 
     coreNLPChineseSegment('../data/QC/Chinese_qc/trimchqctrain', '../data/QC/Chinese_qc/finaltrain')
     coreNLPChineseSegment('../data/QC/Chinese_qc/trimchqctest', '../data/QC/Chinese_qc/finaltest')
+
+    coreNLPparser('../data/QC/Chinese_qc/trimchqctrain', 'ch', '../exp/ch_qc_train')
+    coreNLPparser('../data/QC/Chinese_qc/trimchqctest', 'ch', '../exp/ch_qc_test')
+    coreNLPparser('../data/QC/TREC/formatTrain', 'eng', '../exp/eng_qc_train')
+    coreNLPparser('../data/QC/TREC/formatTest', 'eng', '../exp/eng_qc_test')
 
     # getChineseQCstructure('../data/QC/Chinese_qc/trimchqctrain', '../data/QC/Chinese_qc/label_struct')
     # getEnglishQCstructure('../data/QC/TREC/formatTrain', '../data/QC/TREC/label_struct')
