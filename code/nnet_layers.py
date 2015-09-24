@@ -153,7 +153,9 @@ class LeNetConvPoolLayer(object):
     """Pool Layer of a convolutional network """
 
     def __init__(self, rng, input, filter_shape,
-                 poolsize, non_linear="tanh",
+                 poolsize,
+                 subsample=(1, 1),
+                 non_linear="tanh",
                  params=None,
                  image_shape=None):
         """
@@ -203,7 +205,7 @@ class LeNetConvPoolLayer(object):
 
         # convolve input feature maps with filters
         conv_out = conv.conv2d(input=input, filters=self.W, filter_shape=self.filter_shape,
-                               image_shape=self.image_shape)
+                               image_shape=self.image_shape, subsample=subsample)
         if self.non_linear == "tanh":
             conv_out_tanh = T.tanh(conv_out + self.b.dimshuffle('x', 0, 'x', 'x'))
             self.conv_out = conv_out_tanh

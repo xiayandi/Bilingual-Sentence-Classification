@@ -142,6 +142,7 @@ def train_joint_conv_net(
         input=input,
         filter_shape=filter_shape,
         poolsize=pool_size,
+        subsample=(3, 1),
         image_shape=None
     )
 
@@ -280,7 +281,7 @@ if __name__ == '__main__':
     dataFile = '../exp/dataset_bi_qc.pkl'
     labelStructureFile = '../exp/label_struct_bi_qc'
     cfswitch = 'c'
-    filter_h = 5
+    filter_h = 3
     n_epochs=1000
     batch_size=50
     feature_maps=150

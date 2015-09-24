@@ -74,6 +74,15 @@ def getAncestors(idx, level, d2g):
 
 
 def constructDependencyBasedData(ancestornum, corpusFile, depTripleFile, outputFile):
+    """
+    :func construct dependency based data. the normal sentences are reordered
+            using dependency information
+    :param ancestornum: how many ancestors to append after the word
+    :param corpusFile: formatted corpus file with normal sentences
+    :param depTripleFile: the dependency triple file extracted from coreNLP result
+    :param outputFile: the output file that stores the dependency based data
+    :return: n/a
+    """
     sentences, c_lbls, f_lbls = get_raw_sentences_labels(
         corpusFile
     )
@@ -102,7 +111,33 @@ def constructDependencyBasedData(ancestornum, corpusFile, depTripleFile, outputF
         writer.writelines(newinstances)
 
 
-def get_idx_from_sent(sent, word_idx_map, max_l, filter_h=3):
+def get_idx_from_dep_pattern(deppatterns, word_idx_map, max_l, filter_h):
+    """
+    function: given a set of dependency based patterns, constructed by
+            constructDependencyBasedData, return a index sentence with
+            each index represents the word index in the word embedding dictionary
+    :param sent: text sentence
+    :param word_idx_map: a hash variable mapping text word to int index
+    :param max_l: the global max length of the sentences in training data
+    :param filter_h: window size
+    :return: a vector with each element representing a word index in the sentence
+    """
+    # Transforms dependency pattern into a list of indices.
+    x = []
+    words = deppatterns.split()
+    assert len(words) % filter_h == 0
+
+    for word in words:
+        if word in word_idx_map:  # remove unkown words
+            x.append(word_idx_map[word])
+        else:
+            x.append(0)
+    while len(x) < max_l:
+        x.append(0)
+    return x
+
+
+def get_idx_from_sent(sent, word_idx_map, max_l, filter_h):
     """
     function: given a text sentence, return a index sentence with each index represents
             the word index in the word embedding dictionary
@@ -274,7 +309,7 @@ def get_length_mask(sentences):
     return mask
 
 
-def construct_dataset(datafile, filter_h, lbl2idxmap, vocab_file):
+def construct_dataset(datafile, filter_h, lbl2idxmap, vocab_file, indexizer):
     """
     function: convert text version data into index version used by CNN model.
     :param datafile: training, test or valid data file
@@ -303,7 +338,7 @@ def construct_dataset(datafile, filter_h, lbl2idxmap, vocab_file):
         sent = sentences[i]
         c_lbl = c_lbls[i]
         f_lbl = f_lbls[i]
-        sent_idx = get_idx_from_sent(sent, w2idx, max_l, filter_h)
+        sent_idx = indexizer(sent, w2idx, max_l, filter_h)
         c_idx = c2idx[c_lbl]
         f_idx = f2idx[f_lbl]
         sent_idx_seq.append(sent_idx)
@@ -338,7 +373,7 @@ def datasetConstructRundown():
 
     label_struct_file = '../exp/label_struct_bi_qc'
     vocab_file = '../exp/vocab_bi_qc.lst'
-    filter_h = 5  # window size
+    filter_h = 3  # window size
     outputDataFile = '../exp/dataset_bi_qc.pkl'
 
     # output label structure file and get the label to index hash map
@@ -346,13 +381,19 @@ def datasetConstructRundown():
     lbl2idxmap = get_lbl_to_idx_map(label_struct_file)
 
     # actual stage for constructing CNN data
-    train_part = construct_dataset(dep_train_file, filter_h, lbl2idxmap, vocab_file)
-    test_part = construct_dataset(dep_test_file, filter_h, lbl2idxmap, vocab_file)
-    #valid_part = construct_dataset(valid_file, filter_h, lbl2idxmap, vocab_file)
+    train_part = construct_dataset(dep_train_file, filter_h, lbl2idxmap, vocab_file, get_idx_from_dep_pattern)
+    test_part = construct_dataset(dep_test_file, filter_h, lbl2idxmap, vocab_file, get_idx_from_dep_pattern)
+    # valid_part = construct_dataset(valid_file, filter_h, lbl2idxmap, vocab_file)
 
     dataset = [train_part, test_part]
     # uncomment next line if you have valid set
     #dataset = [train_part, test_part, valid_part]
+
+    # display dataset info
+    print 'basic info:'
+    print 'max length is: ' + str(dataset[0][0].shape[1])
+    print 'training set size: ' + str(dataset[0][0].shape)
+    print 'test set size: ' + str(dataset[1][0].shape)
 
     dataset_output = open(outputDataFile, 'wb')
     cPickle.dump(dataset, dataset_output, -1)
