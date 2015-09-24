@@ -127,8 +127,8 @@ def testRundown():
     triple = [(0, 'root', 4), (3, 'assmod', 1), (1, 'case', 2), (4, 'dep', 3), (6, 'xsubj', 3), (6, 'advmod', 5),
               (7, '', 6), (8, '', 7)]
     g2d, d2g = getTreeStructure(triple)
-    sibs = getSiblings(3, 2, g2d, d2g)
-    print sibs
+    ancs = getAncestors(2, 4, d2g)
+    print ancs
 
 
 if __name__ == '__main__':

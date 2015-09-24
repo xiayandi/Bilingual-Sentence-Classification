@@ -3,6 +3,8 @@ __author__ = 'yandixia'
 import numpy as np
 import operator
 import cPickle
+import codecs
+import sys
 
 
 def readInDependencyTriples(depTripleFile):
@@ -71,8 +73,33 @@ def getAncestors(idx, level, d2g):
     return None
 
 
-def constructDependencyBasedData():
+def constructDependencyBasedData(ancestornum, corpusFile, depTripleFile, outputFile):
+    sentences, c_lbls, f_lbls = get_raw_sentences_labels(
+        corpusFile
+    )
+    sentences_triples = readInDependencyTriples(depTripleFile)
 
+    assert len(sentences) == len(sentences_triples)
+
+    reordered_sentences = []
+    for i, sent in enumerate(sentences):
+        g2d, d2g = getTreeStructure(sentences_triples[i])
+        words = ['PADDING'] + sent.split()
+        windows = []
+        for j in xrange(1, len(words) + 1):
+            ancestors = getAncestors(j, ancestornum, d2g)
+            if ancestors is not None:
+                windows.append(' '.join([words[k] for k in [j] + ancestors]))
+        reordered_sentences.append(' '.join(windows))
+    assert len(reordered_sentences) == len(sentences)
+
+    newinstances = [
+        f_lbls[i] + '\t' + reordered_sentences[i] + '\n'
+        for i in xrange(len(reordered_sentences))
+    ]
+
+    with open(outputFile, 'w') as writer:
+        writer.writelines(newinstances)
 
 
 def get_idx_from_sent(sent, word_idx_map, max_l, filter_h=3):
@@ -296,7 +323,16 @@ def datasetConstructRundown():
     that is required by CNN model.
     """
     train_file = '../data/QC/TREC/formatTrain'
+    train_dep_file = '../exp/eng_qc_train_dep'
+    dep_train_file = '../exp/eng_qc_dep_train'
     test_file = '../data/QC/Chinese_qc/finaltest'
+    test_dep_file = '../exp/ch_qc_test_dep'
+    dep_test_file = '../exp/ch_qc_dep_test'
+
+    # reorder sentences
+    constructDependencyBasedData(2, train_file, train_dep_file, dep_train_file)
+    constructDependencyBasedData(2, test_file, test_dep_file, dep_test_file)
+
     # you can add valid data set here
     # valid_file = 'the/path/to/valid/set/file'
 
@@ -306,12 +342,12 @@ def datasetConstructRundown():
     outputDataFile = '../exp/dataset_bi_qc.pkl'
 
     # output label structure file and get the label to index hash map
-    output_label_structure(train_file, label_struct_file)
+    output_label_structure(dep_train_file, label_struct_file)
     lbl2idxmap = get_lbl_to_idx_map(label_struct_file)
 
     # actual stage for constructing CNN data
-    train_part = construct_dataset(train_file, filter_h, lbl2idxmap, vocab_file)
-    test_part = construct_dataset(test_file, filter_h, lbl2idxmap, vocab_file)
+    train_part = construct_dataset(dep_train_file, filter_h, lbl2idxmap, vocab_file)
+    test_part = construct_dataset(dep_test_file, filter_h, lbl2idxmap, vocab_file)
     #valid_part = construct_dataset(valid_file, filter_h, lbl2idxmap, vocab_file)
 
     dataset = [train_part, test_part]
