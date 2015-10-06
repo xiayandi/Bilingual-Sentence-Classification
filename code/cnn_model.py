@@ -17,6 +17,19 @@ import process_qc
 import sys
 
 
+# theano.config.profile = True
+
+
+def ReLU(x):
+    y = T.maximum(0, x)
+    return (y)
+
+
+def Iden(x):
+    y = x
+    return (y)
+
+
 def load(pklfile):
     """
     function: loading pickle file into memory
@@ -114,43 +127,55 @@ def train_joint_conv_net(
     test_x = shared_store(datasets[testDataSetIndex][sentenceIndex])
     test_mask = datasets[testDataSetIndex][maskIndex]
 
-    train_size = len(datasets[trainDataSetIndex][sentenceIndex])
-
     w2v = load(w2vFile)
     img_w = w2v.shape[1]  # the dimension of the word embedding
     img_h = len(datasets[trainDataSetIndex][sentenceIndex][0])  # length of each sentence
     max_sent_l = img_h
     filter_w = img_w  # word embedding dimension
-    filter_shape = (feature_maps, 1, filter_h, filter_w)
-    pool_size = (img_h - filter_h + 1, img_w - filter_w + 1)
+    # filter_shape = (feature_maps, 1, filter_h, filter_w)
+    #pool_size = (img_h - filter_h + 1, img_w - filter_w + 1)
+    image_shape = (batch_size, 1, img_h, img_w * filter_h)
+    filter_shape = (feature_maps, 1, 1, filter_w * filter_h)
+    pool_size = (img_h - 1 + 1, img_w - filter_w + 1)
+
+    train_size = len(datasets[trainDataSetIndex][sentenceIndex])
+    print 'number of sentences in training set: ' + str(train_size)
+    print 'max sentence length: ' + str(len(datasets[trainDataSetIndex][sentenceIndex][0]))
+    print 'train data shape: ' + str(datasets[trainDataSetIndex][sentenceIndex].shape)
+    print 'word embedding dim: ' + str(w2v.shape[1])
 
     """
     Building model in theano language, less comments here.
     You can refer to Theano web site for more details
     """
-    batch_index = T.lvector('hello_index')
-    x = T.imatrix('hello_x')
+    batch_index = T.lvector('hello_batch_index')
+    index = T.iscalar('hello_index')
+    x = T.itensor3('hello_x')
     y = T.ivector('hello_y')
     batch_max_l = T.iscalar('hello_max_len')
     w2v_shared = theano.shared(value=w2v, name='w2v', borrow=True)
     rng = np.random.RandomState(3435)
 
-    input = w2v_shared[x].dimshuffle(0, 'x', 1, 2)
+    # input = w2v_shared[x].dimshuffle(0, 'x', 1, 2)
+    input = w2v_shared[x.flatten()].reshape(
+        (x.shape[0], 1, x.shape[1], x.shape[2] * img_w)
+    )[:, :, :, 0:filter_h * img_w]
 
     conv_layer = LeNetConvPoolLayer(
         rng,
         input=input,
         filter_shape=filter_shape,
         poolsize=pool_size,
-        subsample=(3, 1),
-        image_shape=None
+        image_shape=image_shape,
+        non_linear="relu"
     )
 
     classifier = MLPDropout(
         rng=rng,
         input=conv_layer.output.flatten(2),
-        layer_sizes=[feature_maps, mlphiddensize, label_size],
-        dropout_rate=0.5
+        layer_sizes=[feature_maps, label_size],
+        dropout_rate=0.5,
+        activation=Iden
     )
 
     # params = [w2v_shared]+conv_layer.params+classifier.params
@@ -165,11 +190,11 @@ def train_joint_conv_net(
     # config.profile = True
 
     train_model = theano.function(
-        inputs=[batch_index, batch_max_l],
+        inputs=[batch_index],  ##, batch_max_l],
         outputs=cost,
         updates=updates,
         givens={
-            x: train_x[batch_index][:, :batch_max_l],
+            x: train_x[batch_index],
             y: train_y[batch_index],
         },
     )
@@ -206,9 +231,10 @@ def train_joint_conv_net(
         for bchidx in xrange(n_batches):
             random_indexes = batch_indexes[bchidx * batch_size:(bchidx + 1) * batch_size]
             max_l = 2 * (filter_h - 1) + train_mask[random_indexes].max()
-            train_cost = train_model(random_indexes, max_l)
+            train_cost = train_model(random_indexes)
+        print 'training done'
 
-        test_y_preds = test_model()  # test_mask[idx]+2*(filter_h-1)))
+        test_y_preds = test_model()
         test_acc = eval.accuracy(gold_test_y, test_y_preds)
         if test_acc > bestacc:
             bestacc = test_acc
@@ -277,14 +303,14 @@ def as_floatX(variable):
 
 
 if __name__ == '__main__':
-    w2vFile = '../exp/blg250.pkl'
-    dataFile = '../exp/dataset_bi_qc.pkl'
-    labelStructureFile = '../exp/label_struct_bi_qc'
+    w2vFile = '../exp/g300.pkl'
+    dataFile = '../exp/dataset_trec.pkl'
+    labelStructureFile = '../exp/label_struct_trec'
     cfswitch = 'c'
     filter_h = 3
     n_epochs=1000
-    batch_size=50
-    feature_maps=150
+    batch_size = 170
+    feature_maps = 100  # 150
     mlphiddensize=60
     logFile='../exp/logprint'
     logTest='../exp/logTest'

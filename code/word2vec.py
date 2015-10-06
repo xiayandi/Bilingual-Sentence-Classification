@@ -64,15 +64,15 @@ def construct_w2v(emb_dim, vocablist, w2vfile, w2vout):
 
 
 def rundown():
-    allw2v = '../data/blg250.txt'
-    trimmedw2v = '../exp/blg250.pkl'
+    allw2v = '../data/google_w2v.txt'
+    trimmedw2v = '../exp/g300.pkl'
     trainFile = '../data/QC/TREC/formatTrain'
-    testFile = '../data/QC/Chinese_qc/finaltest'
+    testFile = '../data/QC/TREC/formatTest'
     filelist = [trainFile, testFile]
-    encodings = [None, 'utf-8']
-    vocabFile = '../exp/vocab_bi_qc.lst'
+    encodings = [None, None]
+    vocabFile = '../exp/vocab_trec.lst'
     outputAllVocabList(filelist, encodings, vocabFile)
-    construct_w2v(250, vocabFile, allw2v, trimmedw2v)
+    construct_w2v(300, vocabFile, allw2v, trimmedw2v)
 
 
 if __name__ == '__main__':

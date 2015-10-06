@@ -59,18 +59,20 @@ def getAncestors(idx, level, d2g):
     if level == 1:
         if idx in d2g:
             return [d2g[idx][0]]
+        elif idx == 0:  # current node is ROOT
+            return [0]
         else:
-            return None
-
-    if idx in d2g:
-        gs = d2g[idx]
+            return [0]
+    else:
+        if idx in d2g:
+            gs = sorted(d2g[idx], reverse=True)
+        elif idx == 0:
+            gs = [0]
+        else:
+            gs = [0]
         for g in gs:
             ga = getAncestors(g, level - 1, d2g)
-            if ga is None:
-                continue
-            else:
-                return [g] + ga
-    return None
+            return [g] + ga
 
 
 def constructDependencyBasedData(ancestornum, corpusFile, depTripleFile, outputFile):
@@ -95,10 +97,17 @@ def constructDependencyBasedData(ancestornum, corpusFile, depTripleFile, outputF
         g2d, d2g = getTreeStructure(sentences_triples[i])
         words = ['PADDING'] + sent.split()
         windows = []
-        for j in xrange(1, len(words) + 1):
+        for j in xrange(1, len(words)):
             ancestors = getAncestors(j, ancestornum, d2g)
             if ancestors is not None:
-                windows.append(' '.join([words[k] for k in [j] + ancestors]))
+                try:
+                    windows.append(' '.join([words[k] for k in [j] + ancestors]))
+                except IndexError:
+                    print words
+                    print len(words)
+                    print [j] + ancestors
+                    print k
+                    sys.exit()
         reordered_sentences.append(' '.join(windows))
     assert len(reordered_sentences) == len(sentences)
 
@@ -123,17 +132,22 @@ def get_idx_from_dep_pattern(deppatterns, word_idx_map, max_l, filter_h):
     :return: a vector with each element representing a word index in the sentence
     """
     # Transforms dependency pattern into a list of indices.
+
     x = []
     words = deppatterns.split()
     assert len(words) % filter_h == 0
 
-    for word in words:
-        if word in word_idx_map:  # remove unkown words
-            x.append(word_idx_map[word])
-        else:
-            x.append(0)
+    windows = (words[i:i + filter_h] for i in xrange(0, len(words), filter_h))
+    for i, window in enumerate(windows):
+        window_x = []
+        for word in window:
+            if word in word_idx_map:  # remove unkown words
+                window_x.append(word_idx_map[word])
+            else:
+                window_x.append(0)
+        x.append(window_x)
     while len(x) < max_l:
-        x.append(0)
+        x.append([0] * filter_h)
     return x
 
 
@@ -309,7 +323,24 @@ def get_length_mask(sentences):
     return mask
 
 
-def construct_dataset(datafile, filter_h, lbl2idxmap, vocab_file, indexizer):
+def find_global_max_length(filelist):
+    """
+    func: find the max sentence length across a list of corpus files
+    :param filelist: a list of corpus files
+    :return: the max length
+    """
+    max_l = 0
+    for foo in filelist:
+        sentences, c_lbls, f_lbls = get_raw_sentences_labels(
+            foo
+        )
+        length = find_max_length(sentences)
+        if length > max_l:
+            max_l = length
+    return max_l
+
+
+def construct_dataset(datafile, filter_h, max_l, lbl2idxmap, vocab_file, indexizer):
     """
     function: convert text version data into index version used by CNN model.
     :param datafile: training, test or valid data file
@@ -326,7 +357,7 @@ def construct_dataset(datafile, filter_h, lbl2idxmap, vocab_file, indexizer):
     sentences, c_lbls, f_lbls = get_raw_sentences_labels(
         datafile
     )
-    max_l = find_max_length(sentences)
+
     w2idx = get_w_to_idx_map(vocab_file)
 
     c2idx, f2idx = lbl2idxmap
@@ -360,29 +391,31 @@ def datasetConstructRundown():
     train_file = '../data/QC/TREC/formatTrain'
     train_dep_file = '../exp/eng_qc_train_dep'
     dep_train_file = '../exp/eng_qc_dep_train'
-    test_file = '../data/QC/Chinese_qc/finaltest'
-    test_dep_file = '../exp/ch_qc_test_dep'
-    dep_test_file = '../exp/ch_qc_dep_test'
+    test_file = '../data/QC/TREC/formatTest'
+    test_dep_file = '../exp/eng_qc_test_dep'
+    dep_test_file = '../exp/eng_qc_dep_test'
 
     # reorder sentences
-    constructDependencyBasedData(2, train_file, train_dep_file, dep_train_file)
-    constructDependencyBasedData(2, test_file, test_dep_file, dep_test_file)
+    ancestorNum = 4  # max window size is 4+1
+    filter_h = ancestorNum + 1  # window size
+    constructDependencyBasedData(ancestorNum, train_file, train_dep_file, dep_train_file)
+    constructDependencyBasedData(ancestorNum, test_file, test_dep_file, dep_test_file)
 
     # you can add valid data set here
     # valid_file = 'the/path/to/valid/set/file'
 
-    label_struct_file = '../exp/label_struct_bi_qc'
-    vocab_file = '../exp/vocab_bi_qc.lst'
-    filter_h = 3  # window size
-    outputDataFile = '../exp/dataset_bi_qc.pkl'
+    label_struct_file = '../exp/label_struct_trec'
+    vocab_file = '../exp/vocab_trec.lst'
+    outputDataFile = '../exp/dataset_trec.pkl'
 
     # output label structure file and get the label to index hash map
     output_label_structure(dep_train_file, label_struct_file)
     lbl2idxmap = get_lbl_to_idx_map(label_struct_file)
 
     # actual stage for constructing CNN data
-    train_part = construct_dataset(dep_train_file, filter_h, lbl2idxmap, vocab_file, get_idx_from_dep_pattern)
-    test_part = construct_dataset(dep_test_file, filter_h, lbl2idxmap, vocab_file, get_idx_from_dep_pattern)
+    max_l = find_global_max_length([train_file, test_file])
+    train_part = construct_dataset(dep_train_file, filter_h, max_l, lbl2idxmap, vocab_file, get_idx_from_dep_pattern)
+    test_part = construct_dataset(dep_test_file, filter_h, max_l, lbl2idxmap, vocab_file, get_idx_from_dep_pattern)
     # valid_part = construct_dataset(valid_file, filter_h, lbl2idxmap, vocab_file)
 
     dataset = [train_part, test_part]
