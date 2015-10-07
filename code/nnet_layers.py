@@ -154,7 +154,6 @@ class _LeNetConvPoolLayer(object):
 
     def __init__(self, rng, input, filter_shape,
                  poolsize,
-                 subsample=(1, 1),
                  non_linear="tanh",
                  params=None,
                  image_shape=None):
@@ -205,7 +204,7 @@ class _LeNetConvPoolLayer(object):
 
         # convolve input feature maps with filters
         conv_out = conv.conv2d(input=input, filters=self.W, filter_shape=self.filter_shape,
-                               image_shape=self.image_shape, subsample=subsample)
+                               image_shape=self.image_shape)
         if self.non_linear == "tanh":
             conv_out_tanh = T.tanh(conv_out + self.b.dimshuffle('x', 0, 'x', 'x'))
             self.conv_out = conv_out_tanh
@@ -217,80 +216,25 @@ class _LeNetConvPoolLayer(object):
             self.output = T.max(conv_out_relu, axis=2)
             self.argmax = T.argmax(conv_out_relu, axis=2)
         else:
-            self.conv_out = conv_out
-            pooled_out = T.max(conv_out, axis=2)
-            self.argmax = T.argmax(conv_out, axis=2)
-            self.output = pooled_out + self.b.dimshuffle('x', 0, 'x', 'x')
+            print 'what on earth do you want!!!'
+            import sys
+
+            sys.exit()
         self.params = [self.W, self.b]
 
-
-class __LeNetConvPoolLayer(object):
-    """Pool Layer of a convolutional network """
-
-    def __init__(self, rng, input, filter_shape,
-                 poolsize,
-                 non_linear="tanh",
-                 params=None,
-                 image_shape=None):
-        """
-        Allocate a LeNetConvPoolLayer with shared variable internal parameters.
-        :type rng: numpy.random.RandomState
-        :param rng: a random number generator used to initialize weights
-        :type input: theano.tensor.dtensor4
-        :param input: symbolic image tensor, of shape image_shape
-        :type filter_shape: tuple or list of length 4
-        :param filter_shape: (number of filters, num input feature maps,
-                              filter height,filter width)
-        :type image_shape: tuple or list of length 4
-        :param image_shape: (batch size, num input feature maps,
-                             image height, image width)
-        :type poolsize: tuple or list of length 2
-        :param poolsize: the downsampling (pooling) factor (#rows,#cols)
-        """
-        self.input = input
-        self.filter_shape = filter_shape
-        self.image_shape = image_shape
-        self.poolsize = poolsize
-        self.non_linear = non_linear
-
-        if params is None:
-            # there are "num input feature maps * filter height * filter width"
-            # inputs to each hidden unit
-            fan_in = np.prod(filter_shape[1:])
-            # each unit in the lower layer receives a gradient from:
-            # "num output feature maps * filter height * filter width" /
-            #   pooling size
-            fan_out = (filter_shape[0] * np.prod(filter_shape[2:]) / np.prod(poolsize))
-            # initialize weights with random weights
-            if self.non_linear == "none" or self.non_linear == "relu":
-                self.W = theano.shared(np.asarray(rng.uniform(low=-0.01, high=0.01, size=filter_shape),
-                                                  dtype=theano.config.floatX), borrow=True, name="W_conv")
-            else:
-                W_bound = np.sqrt(6. / (fan_in + fan_out))
-                self.W = theano.shared(np.asarray(rng.uniform(low=-W_bound, high=W_bound, size=filter_shape),
-                                                  dtype=theano.config.floatX), borrow=True, name="W_conv")
-            b_values = np.zeros((filter_shape[0],), dtype=theano.config.floatX)
-            self.b = theano.shared(value=b_values, borrow=True, name="b_conv")
-        else:
-            filter_index = 0
-            bias_index = 1
-            self.W = params[filter_index]
-            self.b = params[bias_index]
-
-        # convolve input feature maps with filters
+    def conv_layer_output(self, input, image_shape):
         conv_out = conv.conv2d(input=input, filters=self.W, filter_shape=self.filter_shape,
-                               image_shape=self.image_shape)
+                               image_shape=image_shape)
         if self.non_linear == "tanh":
             conv_out_tanh = T.tanh(conv_out + self.b.dimshuffle('x', 0, 'x', 'x'))
-            self.conv_out = conv_out_tanh
-            self.output = T.max(conv_out_tanh, axis=2)
-            self.argmax = T.argmax(conv_out_tanh, axis=2)
+            output = downsample.max_pool_2d(input=conv_out_tanh, ds=self.poolsize, ignore_border=True)
         elif self.non_linear == "relu":
             conv_out_relu = ReLU(conv_out + self.b.dimshuffle('x', 0, 'x', 'x'))
-            self.conv_non_out = conv_out_relu
-            # self.output = T.max(conv_out_relu, axis=2)
-            self.output = downsample.max_pool_2d(input=conv_out_relu, ds=self.poolsize, ignore_border=True)
-        self.params = [self.W, self.b]
+            conv_out = conv_out_relu
+            output = T.max(conv_out_relu, axis=2)
+            argmax = T.argmax(conv_out_relu, axis=2)
+            conv_out = conv_out_relu
+        return output
 
 
 class LeNetConvPoolLayer(object):
@@ -349,204 +293,30 @@ class LeNetConvPoolLayer(object):
             conv_out_tanh = T.tanh(conv_out + self.b.dimshuffle('x', 0, 'x', 'x'))
             self.output = downsample.max_pool_2d(input=conv_out_tanh, ds=self.poolsize, ignore_border=True)
         elif self.non_linear == "relu":
-            conv_out_tanh = ReLU(conv_out + self.b.dimshuffle('x', 0, 'x', 'x'))
-            self.output = downsample.max_pool_2d(input=conv_out_tanh, ds=self.poolsize, ignore_border=True)
+            conv_out_relu = ReLU(conv_out + self.b.dimshuffle('x', 0, 'x', 'x'))
+            self.output = downsample.max_pool_2d(input=conv_out_relu, ds=self.poolsize, ignore_border=True)
+            self.conv_out = conv_out_relu
         else:
             pooled_out = downsample.max_pool_2d(input=conv_out, ds=self.poolsize, ignore_border=True)
             self.output = pooled_out + self.b.dimshuffle('x', 0, 'x', 'x')
         self.params = [self.W, self.b]
 
-
-class FixedKMaxConvPoolLayer(object):
-    """Pool Layer of a convolutional network """
-
-    def __init__(self, rng, input, filter_shape,
-                 poolsize, non_linear="tanh",
-                 params=None,
-                 image_shape=None):
-
-        self.input = input
-        self.filter_shape = filter_shape
-        self.image_shape = image_shape
-        self.poolsize = poolsize
-        self.non_linear = non_linear
-
-        if params is None:
-            fan_in = np.prod(filter_shape[1:])
-            fan_out = (filter_shape[0] * np.prod(filter_shape[2:]) / np.prod(poolsize))
-            if self.non_linear == "none" or self.non_linear == "relu":
-                self.W = theano.shared(np.asarray(rng.uniform(low=-0.01, high=0.01, size=filter_shape),
-                                                  dtype=theano.config.floatX), borrow=True, name="W_conv")
-            else:
-                W_bound = np.sqrt(6. / (fan_in + fan_out))
-                self.W = theano.shared(np.asarray(rng.uniform(low=-W_bound, high=W_bound, size=filter_shape),
-                                                  dtype=theano.config.floatX), borrow=True, name="W_conv")
-            b_values = np.zeros((filter_shape[0],), dtype=theano.config.floatX)
-            self.b = theano.shared(value=b_values, borrow=True, name="b_conv")
-        else:
-            filter_index = 0
-            bias_index = 1
-            self.W = params[filter_index]
-            self.b = params[bias_index]
-        # convolve input feature maps with filters
+    def conv_layer_output(self, input, image_shape):
         conv_out = conv.conv2d(input=input, filters=self.W, filter_shape=self.filter_shape,
-                               image_shape=self.image_shape)
-        conv_out_tanh = T.tanh(conv_out + self.b.dimshuffle('x', 0, 'x', 'x'))
-        self.conv_out = conv_out_tanh
-        self.output = T.max(conv_out_tanh, axis=2)
-        self.argmax = T.argmax(conv_out_tanh, axis=2)
-        self.params = [self.W, self.b]
-
-
-class KMaxConvPoolLayer(object):
-    """Pool Layer of a convolutional network, fixed K max pooling, non-linear function is tanh"""
-
-    def __init__(self,
-                 rng,
-                 input,
-                 filter_shape,
-                 poolsize,
-                 kmasks,  # shape (batch_size, pos_size, max_mask_len)
-                 non_linear="tanh",
-                 params=None,
-                 image_shape=None):
-
-        self.input = input
-        self.filter_shape = filter_shape
-        self.image_shape = image_shape
-        self.poolsize = poolsize
-        self.non_linear = non_linear
-
-        # parameter initialization
-        if params is None:
-            fan_in = np.prod(filter_shape[1:])
-            fan_out = (filter_shape[0] * np.prod(filter_shape[2:]) / np.prod(poolsize))
-            if self.non_linear == "none" or self.non_linear == "relu":
-                self.W = theano.shared(np.asarray(rng.uniform(low=-0.01, high=0.01, size=filter_shape),
-                                                  dtype=theano.config.floatX), borrow=True, name="W_conv")
-            else:
-                W_bound = np.sqrt(6. / (fan_in + fan_out))
-                self.W = theano.shared(np.asarray(rng.uniform(low=-W_bound, high=W_bound, size=filter_shape),
-                                                  dtype=theano.config.floatX), borrow=True, name="W_conv")
-            b_values = np.zeros((filter_shape[0],), dtype=theano.config.floatX)
-            self.b = theano.shared(value=b_values, borrow=True, name="b_conv")
+                               image_shape=image_shape)
+        if self.non_linear == "tanh":
+            conv_out_tanh = T.tanh(conv_out + self.b.dimshuffle('x', 0, 'x', 'x'))
+            output = downsample.max_pool_2d(input=conv_out_tanh, ds=self.poolsize, ignore_border=True)
+        elif self.non_linear == "relu":
+            conv_out_relu = ReLU(conv_out + self.b.dimshuffle('x', 0, 'x', 'x'))
+            output = downsample.max_pool_2d(input=conv_out_relu, ds=self.poolsize, ignore_border=True)
+            conv_out = conv_out_relu
         else:
-            filter_index = 0
-            bias_index = 1
-            self.W = params[filter_index]
-            self.b = params[bias_index]
+            print 'non-linear function wrong! LeNet'
+            import sys
 
-        # convolve input feature maps with filters
-        conv_out = conv.conv2d(input=input, filters=self.W, filter_shape=self.filter_shape,
-                               image_shape=self.image_shape)
-        conv_out_tanh = T.tanh(conv_out + self.b.dimshuffle('x', 0, 'x', 'x'))
-
-        def inner_func(sendid, t4matrix, masks):
-            max_ = T.max(t4matrix[sendid, :, masks[sendid], :], axis=1)
-            flatten_ = max_.flatten().dimshuffle('x', 0)
-            return flatten_
-
-        batch_size = conv_out_tanh.shape[0]
-        fm = filter_shape[0]  # feature map
-
-        pad = T.zeros((batch_size, fm, 1, 1), dtype=np.float32)
-        cot_pad = T.concatenate([conv_out_tanh, pad], axis=2)
-
-        scan_rs, updates = theano.scan(
-            fn=inner_func,
-            outputs_info=None,
-            sequences=T.arange(batch_size),
-            non_sequences=[cot_pad, kmasks]
-        )
-
-        conv_pool_out = scan_rs.dimshuffle(0, 2)
-
-        self.output = conv_pool_out
-
-        self.conv_out = conv_out_tanh
-        self.argmax = T.argmax(conv_out_tanh, axis=2)
-        self.params = [self.W, self.b]
-
-
-class filterConvPoolLayer(object):
-    """Pool Layer of a convolutional network, non-linear function is tanh
-        adding hinge score to it.
-    """
-
-    def __init__(self,
-                 rng,
-                 input,
-                 filter_shape,
-                 poolsize,
-                 kmasks,  # shape (batch_size, pos_size, max_mask_len)
-                 anti_kmasks,
-                 pos_size,
-                 filter_divide,
-                 non_linear="tanh",
-                 params=None,
-                 image_shape=None):
-
-        self.input = input
-        self.filter_shape = filter_shape
-        self.image_shape = image_shape
-        self.poolsize = poolsize
-        self.non_linear = non_linear
-
-        # parameter initialization
-        if params is None:
-            fan_in = np.prod(filter_shape[1:])
-            fan_out = (filter_shape[0] * np.prod(filter_shape[2:]) / np.prod(poolsize))
-            if self.non_linear == "none" or self.non_linear == "relu":
-                self.W = theano.shared(np.asarray(rng.uniform(low=-0.01, high=0.01, size=filter_shape),
-                                                  dtype=theano.config.floatX), borrow=True, name="W_conv")
-            else:
-                W_bound = np.sqrt(6. / (fan_in + fan_out))
-                self.W = theano.shared(np.asarray(rng.uniform(low=-W_bound, high=W_bound, size=filter_shape),
-                                                  dtype=theano.config.floatX), borrow=True, name="W_conv")
-            b_values = np.zeros((filter_shape[0],), dtype=theano.config.floatX)
-            self.b = theano.shared(value=b_values, borrow=True, name="b_conv")
-        else:
-            filter_index = 0
-            bias_index = 1
-            self.W = params[filter_index]
-            self.b = params[bias_index]
-
-        # convolve input feature maps with filters
-        conv_out = conv.conv2d(input=input, filters=self.W, filter_shape=self.filter_shape,
-                               image_shape=self.image_shape)
-        conv_out_tanh = T.tanh(conv_out + self.b.dimshuffle('x', 0, 'x', 'x'))
-
-        batch_size = conv_out_tanh.shape[0]
-        fm = filter_shape[0]  # feature map
-
-        pad = T.zeros((batch_size, fm, 1, 1), dtype=np.float32)
-        cot_pad = T.concatenate([conv_out_tanh, pad], axis=2)
-
-        def inn_func(sendid, prior,t4matrix, masks, anti_masks, pos_idx, filter_divide):
-            part_filter = t4matrix[:,filter_divide[pos_idx],:,:]
-            cscore = T.mean(part_filter[sendid,:,masks[sendid][pos_idx],:], axis=0)
-            elsemax_ = T.max(part_filter[sendid,:,anti_masks[sendid][pos_idx],:], axis=0)
-            scores = T.ones_like(cscore) - cscore + elsemax_
-            hinge_loss = (scores * (scores > 0)).mean()
-            return prior + hinge_loss
-
-        hinge_sum = 0.
-        for idx in xrange(pos_size):
-            scan_rs, updates = theano.scan(
-                fn=inn_func,
-                outputs_info=0.,
-                sequences=T.arange(batch_size),
-                non_sequences=[cot_pad, kmasks, anti_kmasks, idx, filter_divide]
-            )
-            hinge_sum += scan_rs[-1]
-
-        self.output = T.max(conv_out_tanh, axis=2).flatten(2)
-
-        self.hinge_loss = hinge_sum
-
-        self.conv_out = conv_out_tanh
-        self.argmax = T.argmax(conv_out_tanh, axis=2)
-        self.params = [self.W, self.b]
+            sys.exit()
+        return output
 
 
 def _dropout_from_layer(rng, layer, p):
@@ -581,6 +351,7 @@ class MLPDropout(object):
         self.weight_matrix_sizes = zip(layer_sizes, layer_sizes[1:])
         self.layers = []
         self.dropout_layers = []
+        self.activation = activation
         next_layer_input = input
         # first_layer = True
         # dropout the input
@@ -638,3 +409,11 @@ class MLPDropout(object):
 
         # Grab all the parameters together.
         self.params = [param for layer in self.dropout_layers for param in layer.params]
+
+    def predict(self, input):
+        next_layer_input = input
+        for i, layer in enumerate(self.layers[:-1]):
+            next_layer_input = self.activation(T.dot(next_layer_input, layer.W) + layer.b)
+        p_y_given_x = T.nnet.softmax(T.dot(next_layer_input, self.layers[-1].W) + self.layers[-1].b)
+        y_pred = T.argmax(p_y_given_x, axis=1)
+        return y_pred

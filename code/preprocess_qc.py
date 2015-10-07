@@ -253,9 +253,9 @@ def coreNLPparser(formattedFile, lang, rawsentfile):
         os.system(command)
 
 
-def outputDependencyTriples(coreNLPParseFile, depTripleOutputFile):
+def outputBasicDependencyTriples(coreNLPParseFile, depTripleOutputFile):
     """
-    :func extract dependency triples from coreNLP results and then output
+    :func extract basic dependency triples from coreNLP results and then output
             the triples to file
     :param coreNLPParseFile: the coreNLP result file
     :param depTripleOutputFile: triple output file
@@ -269,6 +269,31 @@ def outputDependencyTriples(coreNLPParseFile, depTripleOutputFile):
         basicdep = sentence.find("dependencies[@type='basic-dependencies']")
         triples = ''
         for dep in basicdep.iter('dep'):
+            dep_type = dep.attrib['type']
+            dep_governor_idx = dep.find('governor').attrib['idx']
+            dep_dependent_idx = dep.find('dependent').attrib['idx']
+            triples += '(' + dep_governor_idx + ',' + dep_type + ',' + dep_dependent_idx + ')@'
+        sentences_deps.append(triples.rstrip('@') + '\n')
+    with codecs.open(depTripleOutputFile, 'w', 'utf-8') as writer:
+        writer.writelines(sentences_deps)
+
+
+def outputCollapsedDependencyTriples(coreNLPParseFile, depTripleOutputFile):
+    """
+    :func extract collapsed dependency triples from coreNLP results and then output
+            the triples to file
+    :param coreNLPParseFile: the coreNLP result file
+    :param depTripleOutputFile: triple output file
+    :return: n/a
+    """
+    print 'extracting dependency triples from coreNLP result files...'
+    tree = ET.parse(coreNLPParseFile)
+    root = tree.getroot()
+    sentences_deps = []
+    for sentence in root.iter('sentence'):
+        collapseddep = sentence.find("dependencies[@type='collapsed-dependencies']")
+        triples = ''
+        for dep in collapseddep.iter('dep'):
             dep_type = dep.attrib['type']
             dep_governor_idx = dep.find('governor').attrib['idx']
             dep_dependent_idx = dep.find('dependent').attrib['idx']
@@ -299,13 +324,14 @@ def rundown():
                           '../data/QC/Chinese_qc/finaltest',
                           '../exp/ch_qc_test.xml')
 
-    outputDependencyTriples('../exp/ch_qc_train.xml', '../exp/ch_qc_train_dep')
-    outputDependencyTriples('../exp/ch_qc_test.xml', '../exp/ch_qc_test_dep')
-    outputDependencyTriples('../exp/eng_qc_train.xml', '../exp/eng_qc_train_dep')
-    outputDependencyTriples('../exp/eng_qc_test.xml', '../exp/eng_qc_test_dep')
-
+    outputBasicDependencyTriples('../exp/ch_qc_train.xml', '../exp/ch_qc_train_dep')
+    outputBasicDependencyTriples('../exp/ch_qc_test.xml', '../exp/ch_qc_test_dep')
+    outputBasicDependencyTriples('../exp/eng_qc_train.xml', '../exp/eng_qc_train_dep')
+    outputBasicDependencyTriples('../exp/eng_qc_test.xml', '../exp/eng_qc_test_dep')
 
 
 if __name__ == "__main__":
-    rundown()
+    # rundown()
+    outputBasicDependencyTriples('../exp/eng_qc_train.xml', '../exp/eng_qc_train_dep')
+    outputBasicDependencyTriples('../exp/eng_qc_test.xml', '../exp/eng_qc_test_dep')
 

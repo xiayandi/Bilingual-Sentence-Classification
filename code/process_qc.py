@@ -98,16 +98,9 @@ def constructDependencyBasedData(ancestornum, corpusFile, depTripleFile, outputF
         words = ['PADDING'] + sent.split()
         windows = []
         for j in xrange(1, len(words)):
-            ancestors = getAncestors(j, ancestornum, d2g)
+            ancestors = myGetAncestors(j, ancestornum, d2g)
             if ancestors is not None:
-                try:
-                    windows.append(' '.join([words[k] for k in [j] + ancestors]))
-                except IndexError:
-                    print words
-                    print len(words)
-                    print [j] + ancestors
-                    print k
-                    sys.exit()
+                windows.append(' '.join([words[k] for k in [j] + ancestors]))
         reordered_sentences.append(' '.join(windows))
     assert len(reordered_sentences) == len(sentences)
 
@@ -118,6 +111,32 @@ def constructDependencyBasedData(ancestornum, corpusFile, depTripleFile, outputF
 
     with open(outputFile, 'w') as writer:
         writer.writelines(newinstances)
+
+
+def myGetAncestors(idx, level, d2g):
+    """
+    :func find a list of ancestors for the given idx
+    :param idx: node idx
+    :param level: how many ancestors to find, level 1 return node idx's parent
+    :param g2d: governor to dependent mapping
+    :param d2g: dependent to governor mapping
+    :return: the list of ancestors if level is fulfilled, otherwise None
+    """
+    if level == 1:
+        if idx in d2g:
+            return [d2g[idx][0]]
+        else:
+            return None
+
+    if idx in d2g:
+        gs = d2g[idx]
+        for g in gs:
+            ga = getAncestors(g, level - 1, d2g)
+            if ga is None:
+                continue
+            else:
+                return [g] + ga
+    return None
 
 
 def get_idx_from_dep_pattern(deppatterns, word_idx_map, max_l, filter_h):
@@ -395,28 +414,34 @@ def datasetConstructRundown():
     test_dep_file = '../exp/eng_qc_test_dep'
     dep_test_file = '../exp/eng_qc_dep_test'
 
-    # reorder sentences
-    ancestorNum = 4  # max window size is 4+1
-    filter_h = ancestorNum + 1  # window size
-    constructDependencyBasedData(ancestorNum, train_file, train_dep_file, dep_train_file)
-    constructDependencyBasedData(ancestorNum, test_file, test_dep_file, dep_test_file)
-
-    # you can add valid data set here
-    # valid_file = 'the/path/to/valid/set/file'
-
     label_struct_file = '../exp/label_struct_trec'
     vocab_file = '../exp/vocab_trec.lst'
     outputDataFile = '../exp/dataset_trec.pkl'
+    DepBased = True
 
     # output label structure file and get the label to index hash map
-    output_label_structure(dep_train_file, label_struct_file)
+    output_label_structure(train_file, label_struct_file)
     lbl2idxmap = get_lbl_to_idx_map(label_struct_file)
 
-    # actual stage for constructing CNN data
+    # find the global max sentence length
     max_l = find_global_max_length([train_file, test_file])
-    train_part = construct_dataset(dep_train_file, filter_h, max_l, lbl2idxmap, vocab_file, get_idx_from_dep_pattern)
-    test_part = construct_dataset(dep_test_file, filter_h, max_l, lbl2idxmap, vocab_file, get_idx_from_dep_pattern)
-    # valid_part = construct_dataset(valid_file, filter_h, lbl2idxmap, vocab_file)
+
+    if DepBased:
+        # reorder sentences
+        ancestorNum = 4  # max window size is 4+1
+        filter_h = ancestorNum + 1  # window size
+        constructDependencyBasedData(ancestorNum, train_file, train_dep_file, dep_train_file)
+        constructDependencyBasedData(ancestorNum, test_file, test_dep_file, dep_test_file)
+
+        # actual stage for constructing CNN data
+        train_part = construct_dataset(dep_train_file, filter_h, max_l, lbl2idxmap, vocab_file,
+                                       get_idx_from_dep_pattern)
+        test_part = construct_dataset(dep_test_file, filter_h, max_l, lbl2idxmap, vocab_file, get_idx_from_dep_pattern)
+    else:
+        filter_h = 3
+        # actual stage for constructing CNN data
+        train_part = construct_dataset(train_file, filter_h, max_l, lbl2idxmap, vocab_file, get_idx_from_sent)
+        test_part = construct_dataset(test_file, filter_h, max_l, lbl2idxmap, vocab_file, get_idx_from_sent)
 
     dataset = [train_part, test_part]
     # uncomment next line if you have valid set

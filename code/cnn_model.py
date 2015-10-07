@@ -59,14 +59,14 @@ def train_joint_conv_net(
         dataFile,
         labelStructureFile,
         cfswitch,
-        filter_h=3,
+        filter_hs=[3],
         n_epochs=1000,
         batch_size=50,
         feature_maps=100,
         mlphiddensize=100,
         logFile='../exp/logprint',
         logTest='../exp/logTest'
-    ):
+):
     """
     function: learning and testing sentence level Question Classification Task
             in a joint fashion, ie. adding the loss function of coarse label prediction
@@ -120,23 +120,22 @@ def train_joint_conv_net(
     # train part
     train_y = shared_store(datasets[trainDataSetIndex][lblIndex])
     train_x = shared_store(datasets[trainDataSetIndex][sentenceIndex])
-    train_mask = datasets[trainDataSetIndex][maskIndex]
 
     # test part
     gold_test_y = datasets[testDataSetIndex][lblIndex]
     test_x = shared_store(datasets[testDataSetIndex][sentenceIndex])
-    test_mask = datasets[testDataSetIndex][maskIndex]
 
     w2v = load(w2vFile)
     img_w = w2v.shape[1]  # the dimension of the word embedding
     img_h = len(datasets[trainDataSetIndex][sentenceIndex][0])  # length of each sentence
-    max_sent_l = img_h
     filter_w = img_w  # word embedding dimension
-    # filter_shape = (feature_maps, 1, filter_h, filter_w)
-    #pool_size = (img_h - filter_h + 1, img_w - filter_w + 1)
-    image_shape = (batch_size, 1, img_h, img_w * filter_h)
-    filter_shape = (feature_maps, 1, 1, filter_w * filter_h)
-    pool_size = (img_h - 1 + 1, img_w - filter_w + 1)
+    image_shapes = []
+    filter_shapes = []
+    for i in xrange(len(filter_hs)):
+        image_shapes.append((batch_size, 1, img_h, img_w * filter_hs[i]))
+        filter_shapes.append((feature_maps, 1, 1, filter_w * filter_hs[i]))
+
+    pool_size = (img_h, 1)
 
     train_size = len(datasets[trainDataSetIndex][sentenceIndex])
     print 'number of sentences in training set: ' + str(train_size)
@@ -149,48 +148,52 @@ def train_joint_conv_net(
     You can refer to Theano web site for more details
     """
     batch_index = T.lvector('hello_batch_index')
-    index = T.iscalar('hello_index')
     x = T.itensor3('hello_x')
     y = T.ivector('hello_y')
-    batch_max_l = T.iscalar('hello_max_len')
     w2v_shared = theano.shared(value=w2v, name='w2v', borrow=True)
     rng = np.random.RandomState(3435)
 
-    # input = w2v_shared[x].dimshuffle(0, 'x', 1, 2)
-    input = w2v_shared[x.flatten()].reshape(
-        (x.shape[0], 1, x.shape[1], x.shape[2] * img_w)
-    )[:, :, :, 0:filter_h * img_w]
+    conv_layer_outputs = []
+    conv_layers = []
+    for i in xrange(len(filter_hs)):
+        input = w2v_shared[x.flatten()].reshape(
+            (x.shape[0], 1, x.shape[1], x.shape[2] * img_w)
+        )[:, :, :, 0:filter_hs[i] * img_w]
 
-    conv_layer = LeNetConvPoolLayer(
-        rng,
-        input=input,
-        filter_shape=filter_shape,
-        poolsize=pool_size,
-        image_shape=image_shape,
-        non_linear="relu"
-    )
+        conv_layer = LeNetConvPoolLayer(
+            rng,
+            input=input,
+            filter_shape=filter_shapes[i],
+            poolsize=pool_size,
+            image_shape=image_shapes[i],
+            non_linear="relu"
+        )
+
+        conv_layers.append(conv_layer)
+        conv_layer_outputs.append(conv_layer.output.flatten(2))
+
+    mlp_input = T.concatenate(conv_layer_outputs, 1)
 
     classifier = MLPDropout(
         rng=rng,
-        input=conv_layer.output.flatten(2),
-        layer_sizes=[feature_maps, label_size],
+        input=mlp_input,
+        layer_sizes=[feature_maps * len(filter_hs), label_size],
         dropout_rate=0.5,
         activation=Iden
     )
 
-    # params = [w2v_shared]+conv_layer.params+classifier.params
-    params = conv_layer.params + classifier.params
+    params = []
+    for conv_layer in conv_layers:
+        params += conv_layer.params
+    params += classifier.params
+
     cost = classifier.negative_log_likelihood(y)
     updates = sgd_updates_adadelta(params, cost)
 
     n_batches = train_x.shape.eval()[0] / batch_size
 
-    # profiling, enable the next two line comments will print out the speed info of each operation
-    # profmode = theano.ProfileMode(linker=theano.gof.OpWiseCLinker(), optimizer='fast_run')
-    # config.profile = True
-
     train_model = theano.function(
-        inputs=[batch_index],  ##, batch_max_l],
+        inputs=[batch_index],
         outputs=cost,
         updates=updates,
         givens={
@@ -199,9 +202,25 @@ def train_joint_conv_net(
         },
     )
 
+    """
+    Building test model
+    """
+    test_conv_layer_outputs = []
+    for i, conv_layer in enumerate(conv_layers):
+        test_input = w2v_shared[x.flatten()].reshape(
+            (x.shape[0], 1, x.shape[1], x.shape[2] * img_w)
+        )[:, :, :, 0:filter_hs[i] * img_w]
+        test_conv_layer_outputs.append(
+            conv_layer.conv_layer_output(
+                test_input,
+                (test_x.shape.eval()[0], 1, img_h, img_w * filter_hs[i])
+            ).flatten(2)
+        )
+    test_prediction = classifier.predict(T.concatenate(test_conv_layer_outputs, 1))
+
     test_model = theano.function(
         inputs=[],
-        outputs=classifier.y_preds,
+        outputs=test_prediction,
         givens={
             x: test_x,
         }
@@ -230,7 +249,6 @@ def train_joint_conv_net(
         rng.shuffle(batch_indexes)
         for bchidx in xrange(n_batches):
             random_indexes = batch_indexes[bchidx * batch_size:(bchidx + 1) * batch_size]
-            max_l = 2 * (filter_h - 1) + train_mask[random_indexes].max()
             train_cost = train_model(random_indexes)
         print 'training done'
 
@@ -256,8 +274,7 @@ def logging(acc_c, acc_f, epoch, logfile):
     :return: None
     """
     with open(logfile, 'a') as writer:
-        writer.write('acc_c: '+str(acc_c)+'; acc_f: '+str(acc_f)+'; epoch: '+str(epoch)+'\n')
-
+        writer.write('acc_c: ' + str(acc_c) + '; acc_f: ' + str(acc_f) + '; epoch: ' + str(epoch) + '\n')
 
 
 def sgd_updates_adadelta(params, cost, rho=0.95, epsilon=1e-6, norm_lim=9, word_vec_name='Words'):
@@ -303,24 +320,24 @@ def as_floatX(variable):
 
 
 if __name__ == '__main__':
-    w2vFile = '../exp/g300.pkl'
+    w2vFile = '../exp/blg250.pkl'
     dataFile = '../exp/dataset_trec.pkl'
     labelStructureFile = '../exp/label_struct_trec'
     cfswitch = 'c'
-    filter_h = 3
-    n_epochs=1000
+    filter_hs = [3, 4, 5]
+    n_epochs = 1000
     batch_size = 170
     feature_maps = 100  # 150
-    mlphiddensize=60
-    logFile='../exp/logprint'
-    logTest='../exp/logTest'
+    mlphiddensize = 60
+    logFile = '../exp/logprint'
+    logTest = '../exp/logTest'
 
     acc = train_joint_conv_net(
         w2vFile=w2vFile,
         dataFile=dataFile,
         labelStructureFile=labelStructureFile,
         cfswitch=cfswitch,
-        filter_h=filter_h,
+        filter_hs=filter_hs,
         n_epochs=n_epochs,
         batch_size=batch_size,
         feature_maps=feature_maps,
