@@ -319,13 +319,13 @@ def as_floatX(variable):
     return theano.tensor.cast(variable, theano.config.floatX)
 
 
-if __name__ == '__main__':
+def rundown():
     w2vFile = '../exp/blg250.pkl'
-    dataFile = '../exp/dataset_trec.pkl'
-    labelStructureFile = '../exp/label_struct_trec'
+    dataFile = '../exp/dataset_bi.pkl'
+    labelStructureFile = '../exp/label_struct_bi'
     cfswitch = 'c'
     filter_hs = [3, 4, 5]
-    n_epochs = 1000
+    n_epochs = 40
     batch_size = 170
     feature_maps = 100  # 150
     mlphiddensize = 60
@@ -345,3 +345,42 @@ if __name__ == '__main__':
         logFile=logFile,
         logTest=logTest
     )
+
+
+def exprun():
+    w2vFile = '../exp/blg250.pkl'
+    dataFile = '../exp/dataset_bi.pkl'
+    labelStructureFile = '../exp/label_struct_bi'
+    cfswitch = 'c'
+    filter_hs = [3, 4, 5]
+    n_epochs = 40
+    batch_size = 170
+    feature_maps = 100  # 150
+    mlphiddensize = 60
+    logFile = '../exp/logprint'
+    logTest = '../exp/logTest'
+
+    ch_pps = [10, 9, 8, 7, 6, 5, 4, 3, 2, 1]
+    accs = []
+
+    for i, pp in enumerate(ch_pps):
+        process_qc.datasetConstructRundown(0, pp)
+        acc = train_joint_conv_net(
+            w2vFile=w2vFile,
+            dataFile=dataFile,
+            labelStructureFile=labelStructureFile,
+            cfswitch=cfswitch,
+            filter_hs=filter_hs,
+            n_epochs=n_epochs,
+            batch_size=batch_size,
+            feature_maps=feature_maps,
+            mlphiddensize=mlphiddensize,
+            logFile=logFile,
+            logTest=logTest
+        )
+        accs.append(acc)
+    print accs
+
+
+if __name__ == '__main__':
+    exprun()

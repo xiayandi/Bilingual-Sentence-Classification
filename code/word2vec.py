@@ -48,6 +48,10 @@ def construct_w2v(emb_dim, vocablist, w2vfile, w2vout):
 
     # create w2v matrix
     print 'creating word to vector matrix...'
+    outcount = 0
+    incount = 0
+    allcount = len(w2vlines)
+    vocabcount = len(w2idx)
     w2v = np.zeros((len(w2idx), emb_dim), dtype=np.float32)
     for i in xrange(2, len(w2vlines)):
         line = w2vlines[i]
@@ -55,6 +59,13 @@ def construct_w2v(emb_dim, vocablist, w2vfile, w2vout):
         if wd in w2idx:
             vector = [np.float32(digit) for digit in line.split()[1:]]
             w2v[w2idx[wd]] = vector
+            incount += 1
+        else:
+            outcount += 1
+    print 'out of vocabulary count: ' + str(outcount)
+    print 'in vocabulary count: ' + str(incount)
+    print 'w2v count: ' + str(allcount)
+    print 'vocab count: ' + str(vocabcount)
 
     print 'constructing w2v done!'
 
@@ -63,20 +74,48 @@ def construct_w2v(emb_dim, vocablist, w2vfile, w2vout):
     w2v_output.close()
 
 
+def findUnkownWords(vocablist, w2vfile):
+    with open(w2vfile, 'r') as reader:
+        w2vlines = reader.readlines()
+    with open(vocablist, 'r') as reader:
+        allvocablines = reader.readlines()
+    vocablst = []
+    for i in xrange(len(allvocablines)):
+        wd = allvocablines[i].split()[0]
+        vocablst.append(wd)
+    w2vwordset = set()
+    for i in xrange(2, len(w2vlines)):
+        line = w2vlines[i]
+        wd = line.split()[0]
+        w2vwordset.add(wd)
+    unkcount = 0
+    for i, wd in enumerate(vocablst):
+        if wd not in w2vwordset:
+            unkcount += 1
+            print wd
+    print 'unk count: ' + str(unkcount)
+    print 'all count: ' + str(len(vocablst))
+
+
 def rundown():
-    allw2v = '../data/google_w2v.txt'
-    trimmedw2v = '../exp/g300.pkl'
-    trainFile = '../data/QC/TREC/formatTrain'
-    testFile = '../data/QC/TREC/formatTest'
-    filelist = [trainFile, testFile]
-    encodings = [None, None]
-    vocabFile = '../exp/vocab_trec.lst'
+    allw2v = '../data/blg250.txt'
+    trimmedw2v = '../exp/blg250.pkl'
+    engtrainFile = '../data/QC/TREC/formatTrain'
+    engtestFile = '../data/QC/TREC/formatTest'
+    chtrainFile = '../data/QC/Chinese_qc/finaltrain'
+    chtestFile = '../data/QC/Chinese_qc/finaltest'
+    filelist = [engtrainFile, engtestFile, chtestFile, chtrainFile]
+    encodings = [None, None, 'utf-8', 'utf-8']
+    vocabFile = '../exp/vocab_bi.lst'
     outputAllVocabList(filelist, encodings, vocabFile)
-    construct_w2v(300, vocabFile, allw2v, trimmedw2v)
+    construct_w2v(250, vocabFile, allw2v, trimmedw2v)
 
 
 if __name__ == '__main__':
-    rundown()
+    # rundown()
+    vocabFile = '../exp/vocab_bi.lst'
+    allw2v = '../data/blg250.txt'
+    findUnkownWords(vocabFile, allw2v)
 
 
 

@@ -395,57 +395,115 @@ def construct_dataset(datafile, filter_h, max_l, lbl2idxmap, vocab_file, indexiz
         c_idx_seq.append(c_idx)
         f_idx_seq.append(f_idx)
 
-    sent_array = np.array(sent_idx_seq, dtype="int32")
-    c_array = np.array(c_idx_seq, dtype="int32")
-    f_array = np.array(f_idx_seq, dtype="int32")
-    mask_array = np.array(get_length_mask(sentences), dtype="int32")
-    return [sent_array, c_array, f_array, mask_array]
+    # sent_array = np.array(sent_idx_seq, dtype="int32")
+    #c_array = np.array(c_idx_seq, dtype="int32")
+    #f_array = np.array(f_idx_seq, dtype="int32")
+    #mask_array = np.array(get_length_mask(sentences), dtype="int32")
+    #return [sent_array, c_array, f_array, mask_array]
+    return [sent_idx_seq, c_idx_seq, f_idx_seq]
 
 
-def datasetConstructRundown():
+def convertNumpy(lst):
+    datasets = []
+    for v in lst:
+        sent_array = np.array(v[0], dtype="int32")
+        c_array = np.array(v[1], dtype="int32")
+        f_array = np.array(v[2], dtype="int32")
+        dataset = [sent_array, c_array, f_array]
+        datasets.append(dataset)
+    return datasets
+
+
+def mixCorpus(eng_part, ch_part, eng_proportion, ch_proportion):
+    assert len(eng_part) == len(ch_part) == 3
+    mixed = []
+    for i in xrange(len(eng_part)):
+        subpart = eng_part[i][:eng_proportion * len(eng_part[0]) / 10] + ch_part[i][
+                                                                         :ch_proportion * len(ch_part[0]) / 10]
+        mixed.append(subpart)
+    return mixed
+
+
+def permute(data):
+    """
+    func: permute construct_dataset() output format data
+    :param data: data in the format of construct_dataset()
+    """
+    assert len(data) == 3
+    indexes = np.random.permutation(range(len(data[0])))
+    data[0] = [data[0][i] for i in indexes]
+    data[1] = [data[1][i] for i in indexes]
+    data[2] = [data[2][i] for i in indexes]
+
+
+def datasetConstructRundown(eng_proportion, ch_proportion):
     """
     This is a demo script for showing how to use the defined functions to produce data
     that is required by CNN model.
     """
-    train_file = '../data/QC/TREC/formatTrain'
-    train_dep_file = '../exp/eng_qc_train_dep'
-    dep_train_file = '../exp/eng_qc_dep_train'
-    test_file = '../data/QC/TREC/formatTest'
-    test_dep_file = '../exp/eng_qc_test_dep'
-    dep_test_file = '../exp/eng_qc_dep_test'
+    eng_train_file = '../data/QC/TREC/formatTrain'  # English training file original order
+    eng_dep_file_train = '../exp/eng_qc_train_dep'  # English dependency triple file
+    eng_dep_train_file = '../exp/eng_qc_dep_train'  # English dependency based training file
+    eng_test_file = '../data/QC/TREC/formatTest'
+    eng_dep_file_test = '../exp/eng_qc_test_dep'
+    eng_dep_test_file = '../exp/eng_qc_dep_test'
+    ch_train_file = '../data/QC/Chinese_qc/finaltrain'
+    ch_dep_file_train = '../exp/ch_qc_train_dep'
+    ch_dep_train_file = '../exp/ch_qc_dep_train'
+    ch_test_file = '../data/QC/Chinese_qc/finaltest'
+    ch_dep_file_test = '../exp/ch_qc_test_dep'
+    ch_dep_test_file = '../exp/ch_qc_dep_test'
 
-    label_struct_file = '../exp/label_struct_trec'
-    vocab_file = '../exp/vocab_trec.lst'
-    outputDataFile = '../exp/dataset_trec.pkl'
+    label_struct_file = '../exp/label_struct_bi'
+    vocab_file = '../exp/vocab_bi.lst'
+    outputDataFile = '../exp/dataset_bi.pkl'
     DepBased = True
 
     # output label structure file and get the label to index hash map
-    output_label_structure(train_file, label_struct_file)
+    output_label_structure(eng_train_file, label_struct_file)
     lbl2idxmap = get_lbl_to_idx_map(label_struct_file)
 
     # find the global max sentence length
-    max_l = find_global_max_length([train_file, test_file])
+    max_l = find_global_max_length([eng_train_file, eng_test_file, ch_train_file, ch_test_file])
 
     if DepBased:
         # reorder sentences
         ancestorNum = 4  # max window size is 4+1
         filter_h = ancestorNum + 1  # window size
-        constructDependencyBasedData(ancestorNum, train_file, train_dep_file, dep_train_file)
-        constructDependencyBasedData(ancestorNum, test_file, test_dep_file, dep_test_file)
+        constructDependencyBasedData(ancestorNum, eng_train_file, eng_dep_file_train, eng_dep_train_file)
+        constructDependencyBasedData(ancestorNum, eng_test_file, eng_dep_file_test, eng_dep_test_file)
+        constructDependencyBasedData(ancestorNum, ch_train_file, ch_dep_file_train, ch_dep_train_file)
+        constructDependencyBasedData(ancestorNum, ch_test_file, ch_dep_file_test, ch_dep_test_file)
 
         # actual stage for constructing CNN data
-        train_part = construct_dataset(dep_train_file, filter_h, max_l, lbl2idxmap, vocab_file,
-                                       get_idx_from_dep_pattern)
-        test_part = construct_dataset(dep_test_file, filter_h, max_l, lbl2idxmap, vocab_file, get_idx_from_dep_pattern)
+        eng_train_part = construct_dataset(eng_dep_train_file, filter_h, max_l, lbl2idxmap, vocab_file,
+                                           get_idx_from_dep_pattern)
+        eng_test_part = construct_dataset(eng_dep_test_file, filter_h, max_l, lbl2idxmap, vocab_file,
+                                          get_idx_from_dep_pattern)
+
+        ch_train_part = construct_dataset(ch_dep_train_file, filter_h, max_l, lbl2idxmap, vocab_file,
+                                          get_idx_from_dep_pattern)
+        ch_test_part = construct_dataset(ch_dep_test_file, filter_h, max_l, lbl2idxmap, vocab_file,
+                                         get_idx_from_dep_pattern)
+
     else:
         filter_h = 3
         # actual stage for constructing CNN data
-        train_part = construct_dataset(train_file, filter_h, max_l, lbl2idxmap, vocab_file, get_idx_from_sent)
-        test_part = construct_dataset(test_file, filter_h, max_l, lbl2idxmap, vocab_file, get_idx_from_sent)
+        eng_train_part = construct_dataset(eng_train_file, filter_h, max_l, lbl2idxmap, vocab_file, get_idx_from_sent)
+        eng_test_part = construct_dataset(eng_test_file, filter_h, max_l, lbl2idxmap, vocab_file, get_idx_from_sent)
+        ch_train_part = construct_dataset(ch_train_file, filter_h, max_l, lbl2idxmap, vocab_file, get_idx_from_sent)
+        ch_test_part = construct_dataset(ch_test_file, filter_h, max_l, lbl2idxmap, vocab_file, get_idx_from_sent)
 
-    dataset = [train_part, test_part]
+    # mix eng and ch train
+    ch_proportion = ch_proportion
+    eng_proportion = eng_proportion
+    permute(ch_train_part)
+    train_part = mixCorpus(eng_train_part, ch_train_part, eng_proportion, ch_proportion)
+    test_part = ch_test_part
+
+    dataset = convertNumpy([train_part, test_part])
     # uncomment next line if you have valid set
-    #dataset = [train_part, test_part, valid_part]
+    # dataset = [train_part, test_part, valid_part]
 
     # display dataset info
     print 'basic info:'
