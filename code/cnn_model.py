@@ -250,13 +250,17 @@ def train_joint_conv_net(
         for bchidx in xrange(n_batches):
             random_indexes = batch_indexes[bchidx * batch_size:(bchidx + 1) * batch_size]
             train_cost = train_model(random_indexes)
-        print 'training done'
 
         test_y_preds = test_model()
         test_acc = eval.accuracy(gold_test_y, test_y_preds)
         if test_acc > bestacc:
             bestacc = test_acc
             bestep = epoch
+            print test_y_preds.shape
+            # output predictions
+            with open('../exp/predictions', 'w') as writer:
+                for lblidx in test_y_preds:
+                    writer.write(str(lblidx) + '\n')
 
         print 'accuracy is: ' + str(test_acc)
         print 'current best prediction accuracy is: ' + str(bestacc) + ' at epoch ' + str(bestep)
@@ -331,6 +335,7 @@ def rundown():
     mlphiddensize = 60
     logFile = '../exp/logprint'
     logTest = '../exp/logTest'
+    process_qc.datasetConstructRundown(10, 0)
 
     acc = train_joint_conv_net(
         w2vFile=w2vFile,
@@ -383,4 +388,4 @@ def exprun():
 
 
 if __name__ == '__main__':
-    exprun()
+    rundown()

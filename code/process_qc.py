@@ -430,7 +430,8 @@ def permute(data):
     :param data: data in the format of construct_dataset()
     """
     assert len(data) == 3
-    indexes = np.random.permutation(range(len(data[0])))
+    rng = np.random.RandomState(1234)
+    indexes = rng.permutation(range(len(data[0])))
     data[0] = [data[0][i] for i in indexes]
     data[1] = [data[1][i] for i in indexes]
     data[2] = [data[2][i] for i in indexes]
