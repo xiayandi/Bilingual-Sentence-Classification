@@ -206,6 +206,32 @@ def trimChineseQC(formatedchfile, trimmedfile):
         writer.writelines(trimmedinstlines)
 
 
+def trimEnglishQC(formatedengfile, trimmedfile):
+    """
+    :func delete unwanted labels and map chinese labels to TREC labels
+    :param formatedchfile: formatted chinese QC corpus using formatChineseQC() function
+    :param trimmedfile: the output trimmed file
+    :return: n/a
+    """
+    delset = {'ABBR:exp', 'LOC:state', 'LOC:other', 'HUM:title', 'NUM:other', 'ENTY:product',
+              'ENTY:techmeth', 'ENTY:termeq', 'ENTY:word', 'ENTY:letter', 'ENTY:other', 'ENTY:veh',
+              'ENTY:instru'}
+
+    with open(formatedengfile, 'r') as reader:
+        instlines = reader.readlines()
+
+    trimmedinstlines = []
+
+    for line in instlines:
+        items = line.split('\t')
+        flbl = items[0]
+        query = items[1]
+        if flbl not in delset:
+            trimmedinstlines.append(flbl + '\t' + query)
+    with open(trimmedfile, 'w') as writer:
+        writer.writelines(trimmedinstlines)
+
+
 def coreNLPChineseSegment(formattedfile, segfile, coreNLPresultFile):
     """
     :func call coreNLP software to segment chinese corpus
@@ -235,6 +261,35 @@ def coreNLPChineseSegment(formattedfile, segfile, coreNLPresultFile):
 
     with codecs.open(segfile, 'w', 'utf-8') as writer:
         writer.writelines(seginstlines)
+
+
+def lemmatize(formattedCorpusFile, coreNLPResultFile, outputFile):
+    queries, clbls, flbls = get_english_raw_sentences_labels(formattedCorpusFile)
+
+    # parsing the coreNLP result file
+    tree = ET.parse(coreNLPResultFile)
+    root = tree.getroot()
+    lemmatizedsentences = []
+
+    for sentence in root.iter('sentence'):
+        words = []
+        lemmas = []
+        for token in sentence.iter('token'):
+            word = token.find('word').text
+            lemma = token.find('lemma').text
+            lemmas.append(lemma)
+            words.append(word)
+            assert len(lemmas) == len(words)
+        lemmatizedsentences.append(' '.join(words[:1] + lemmas[1:]))
+
+    assert len(lemmatizedsentences) == len(flbls)
+
+    lemmatized_inst_lines = []
+    for i, sent in enumerate(lemmatizedsentences):
+        lemmatized_inst_lines.append(flbls[i] + '\t' + sent + '\n')
+
+    with open(outputFile, 'w') as writer:
+        writer.writelines(lemmatized_inst_lines)
 
 
 def coreNLPparser(formattedFile, lang, rawsentfile):
@@ -311,11 +366,13 @@ def rundown():
 
     trimChineseQC('../data/QC/Chinese_qc/formatTrain', '../data/QC/Chinese_qc/trimchqctrain')
     trimChineseQC('../data/QC/Chinese_qc/formatTest', '../data/QC/Chinese_qc/trimchqctest')
+    trimEnglishQC('../data/QC/TREC/formatTrain', '../data/QC/TREC/trimengqctrain')
+    trimEnglishQC('../data/QC/TREC/formatTest', '../data/QC/TREC/trimengqctest')
 
     coreNLPparser('../data/QC/Chinese_qc/trimchqctrain', 'ch', '../exp/ch_qc_train')
     coreNLPparser('../data/QC/Chinese_qc/trimchqctest', 'ch', '../exp/ch_qc_test')
-    coreNLPparser('../data/QC/TREC/formatTrain', 'eng', '../exp/eng_qc_train')
-    coreNLPparser('../data/QC/TREC/formatTest', 'eng', '../exp/eng_qc_test')
+    coreNLPparser('../data/QC/TREC/trimengqctrain', 'eng', '../exp/eng_qc_train')
+    coreNLPparser('../data/QC/TREC/trimengqctest', 'eng', '../exp/eng_qc_test')
 
     coreNLPChineseSegment('../data/QC/Chinese_qc/trimchqctrain',
                           '../data/QC/Chinese_qc/finaltrain',
@@ -324,6 +381,9 @@ def rundown():
                           '../data/QC/Chinese_qc/finaltest',
                           '../exp/ch_qc_test.xml')
 
+    # lemmatize('../data/QC/TREC/trimengqctrain', '../exp/eng_qc_train.xml', '../data/QC/TREC/lemmaFormatTrain')
+    #lemmatize('../data/QC/TREC/trimengqctest', '../exp/eng_qc_test.xml', '../data/QC/TREC/lemmaFormatTest')
+
     outputBasicDependencyTriples('../exp/ch_qc_train.xml', '../exp/ch_qc_train_dep')
     outputBasicDependencyTriples('../exp/ch_qc_test.xml', '../exp/ch_qc_test_dep')
     outputBasicDependencyTriples('../exp/eng_qc_train.xml', '../exp/eng_qc_train_dep')
@@ -331,7 +391,8 @@ def rundown():
 
 
 if __name__ == "__main__":
-    # rundown()
+    #rundown()
     outputBasicDependencyTriples('../exp/eng_qc_train.xml', '../exp/eng_qc_train_dep')
     outputBasicDependencyTriples('../exp/eng_qc_test.xml', '../exp/eng_qc_test_dep')
+
 

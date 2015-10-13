@@ -442,10 +442,10 @@ def datasetConstructRundown(eng_proportion, ch_proportion):
     This is a demo script for showing how to use the defined functions to produce data
     that is required by CNN model.
     """
-    eng_train_file = '../data/QC/TREC/formatTrain'  # English training file original order
+    eng_train_file = '../data/QC/TREC/trimengqctrain'  # '../data/QC/TREC/formatTrain'  # English training file original order
     eng_dep_file_train = '../exp/eng_qc_train_dep'  # English dependency triple file
     eng_dep_train_file = '../exp/eng_qc_dep_train'  # English dependency based training file
-    eng_test_file = '../data/QC/TREC/formatTest'
+    eng_test_file = '../data/QC/TREC/trimengqctest'  #'../data/QC/TREC/formatTest'
     eng_dep_file_test = '../exp/eng_qc_test_dep'
     eng_dep_test_file = '../exp/eng_qc_dep_test'
     ch_train_file = '../data/QC/Chinese_qc/finaltrain'

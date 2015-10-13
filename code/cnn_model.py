@@ -329,7 +329,7 @@ def rundown():
     labelStructureFile = '../exp/label_struct_bi'
     cfswitch = 'c'
     filter_hs = [3, 4, 5]
-    n_epochs = 40
+    n_epochs = 100
     batch_size = 170
     feature_maps = 100  # 150
     mlphiddensize = 60
