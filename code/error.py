@@ -26,7 +26,7 @@ def findErrors(predictionFile, goldFile, testCorpusFile, label_vector):
         if predslines[i] != goldlines[i]:
             errorPredsInsts.append(label_vector[int(predslines[i])] + '\t' + textlines[i])
 
-    errorFile = '../exp/error_analysis'
+    errorFile = '../exp/error_analysis2'
     with open(errorFile, 'w') as writer:
         writer.writelines(errorPredsInsts)
 
@@ -54,9 +54,25 @@ def findCorrects(predictionFile, goldFile, testCorpusFile, label_vector):
         if predslines[i] == goldlines[i]:
             correctPredsInsts.append(label_vector[int(predslines[i])] + '\t' + textlines[i])
 
-    correctFile = '../exp/correct_analysis'
+    correctFile = '../exp/correct_analysis2'
     with open(correctFile, 'w') as writer:
         writer.writelines(correctPredsInsts)
+
+
+def compareErrors(errfile1, errfile2):
+    with open(errfile1, 'r') as reader:
+        err1lines = reader.readlines()
+    with open(errfile2, 'r') as reader:
+        err2lines = reader.readlines()
+    err2set = set([line.split('\t')[-1] for line in err2lines])
+    count = 0
+    print 'in err1 not in err2'
+    for line in err1lines:
+        if line.split('\t')[-1] not in err2set:
+            count += 1
+            print line.rstrip()
+    print count
+
 
 
 def sortTrecTrain():
@@ -79,4 +95,5 @@ def errorAnalysisRundown():
 
 if __name__ == '__main__':
     errorAnalysisRundown()
-    sortTrecTrain()
+    # sortTrecTrain()
+    #compareErrors('../exp/error_analysis1', '../exp/error_analysis2')
