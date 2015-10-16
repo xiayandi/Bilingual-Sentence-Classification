@@ -54,7 +54,7 @@ def shared_store(data):
     return theano.shared(data, borrow=True)
 
 
-def train_joint_conv_net(
+def _train_joint_conv_net(
         w2vFile,
         dataFile,
         labelStructureFile,
@@ -250,6 +250,224 @@ def train_joint_conv_net(
         for bchidx in xrange(n_batches):
             random_indexes = batch_indexes[bchidx * batch_size:(bchidx + 1) * batch_size]
             train_cost = train_model(random_indexes)
+
+        test_y_preds = test_model()
+        test_acc = eval.accuracy(gold_test_y, test_y_preds)
+        if test_acc > bestacc:
+            bestacc = test_acc
+            bestep = epoch
+            print test_y_preds.shape
+            # output predictions
+            with open('../exp/predictions', 'w') as writer:
+                for lblidx in test_y_preds:
+                    writer.write(str(lblidx) + '\n')
+
+        print 'accuracy is: ' + str(test_acc)
+        print 'current best prediction accuracy is: ' + str(bestacc) + ' at epoch ' + str(bestep)
+
+    return bestacc
+
+
+def train_joint_conv_net(w2vFile, dataFile, labelStructureFile, cfswitch, filter_hs=None, n_epochs=1000, batch_size=50,
+                         feature_maps=100, mlphiddensize=100, logFile='../exp/logprint', logTest='../exp/logTest'):
+    """
+    function: learning and testing sentence level Question Classification Task
+            in a joint fashion, ie. adding the loss function of coarse label prediction
+            and fine label prediction together.
+    :param w2vFile: the path of the word embedding file(pickle file with numpy
+            array value, produced by word2vec.py module)
+    :param dataFile: the dataset file produced by process_data.py module
+    :param labelStructureFile: a file that describes label structure of coarse and fine
+            grains. It is produced in produce_data.py in outputlabelstructure()
+    "param filter_h: sliding window size.
+            *** warning ***
+            you cannot just change window size here, if you want to use a different window
+            for the experiment. YOU NEED TO RE-PRODUCE A NEW DATASET IN process_data.py
+            WITH THE CORRESPONDING WINDOW SIZE.
+    :param n_epochs: the number of epochs the training needs to run
+    :param batch_size: the size of the mini-batch
+    :param feature_maps: how many dimensions you want the abstract sentence
+            representation to be
+    :param mlphiddensize: the size of the hidden layer in MLP
+    :param logFile: the output file of the brief info of each epoch results, basically a
+            save for the print out
+    :param logTest: keep track of results on test set
+    :return: a tuple of best fine grained prediction accuracy and its corresponding
+            coarse grained prediction accuracy
+    """
+    if not filter_hs:
+        filter_hs = [3]
+
+    """
+    Loading and preparing data
+    """
+    datasets = load(dataFile)
+    addfeats = load('../exp/addfeats')
+    clbl_vec, flbl_vec = process_qc.label_structure(labelStructureFile)
+    trainDataSetIndex = 0
+    testDataSetIndex = 1
+    sentenceIndex = 0
+    clblIndex = 1  # coarse label(clbl) index in the dataset structure
+    flblIndex = 2  # fine label(flbl) index
+    maskIndex = 3  # a mask matrix representing the length of the sentences, detail in process_data.py
+
+    if cfswitch == 'c':
+        lblIndex = clblIndex
+        label_vec = clbl_vec
+    elif cfswitch == 'f':
+        lblIndex = flblIndex
+        label_vec = flbl_vec
+    else:
+        print 'wrong arg value in: cfswtich!'
+        sys.exit()
+
+    label_size = len(label_vec)
+
+    # train part
+    train_y = shared_store(datasets[trainDataSetIndex][lblIndex])
+    train_x = shared_store(datasets[trainDataSetIndex][sentenceIndex])
+    train_add = shared_store(addfeats[trainDataSetIndex])
+
+    # test part
+    gold_test_y = datasets[testDataSetIndex][lblIndex]
+    test_x = shared_store(datasets[testDataSetIndex][sentenceIndex])
+    test_add = shared_store(addfeats[testDataSetIndex])
+
+    w2v = load(w2vFile)
+    img_w = w2v.shape[1]  # the dimension of the word embedding
+    img_h = len(datasets[trainDataSetIndex][sentenceIndex][0])  # length of each sentence
+    filter_w = img_w  # word embedding dimension
+    image_shapes = []
+    filter_shapes = []
+    for i in xrange(len(filter_hs)):
+        image_shapes.append((batch_size, 1, img_h, img_w * filter_hs[i]))
+        filter_shapes.append((feature_maps, 1, 1, filter_w * filter_hs[i]))
+
+    pool_size = (img_h, 1)
+
+    train_size = len(datasets[trainDataSetIndex][sentenceIndex])
+    print 'number of sentences in training set: ' + str(train_size)
+    print 'max sentence length: ' + str(len(datasets[trainDataSetIndex][sentenceIndex][0]))
+    print 'train data shape: ' + str(datasets[trainDataSetIndex][sentenceIndex].shape)
+    print 'word embedding dim: ' + str(w2v.shape[1])
+
+    """
+    Building model in theano language, less comments here.
+    You can refer to Theano web site for more details
+    """
+    batch_index = T.lvector('hello_batch_index')
+    x = T.itensor3('hello_x')
+    y = T.ivector('hello_y')
+    add = T.vector('add')
+    w2v_shared = theano.shared(value=w2v, name='w2v', borrow=True)
+    rng = np.random.RandomState(3435)
+
+    conv_layer_outputs = []
+    conv_layers = []
+    for i in xrange(len(filter_hs)):
+        input = w2v_shared[x.flatten()].reshape(
+            (x.shape[0], 1, x.shape[1], x.shape[2] * img_w)
+        )[:, :, :, 0:filter_hs[i] * img_w]
+
+        conv_layer = LeNetConvPoolLayer(
+            rng,
+            input=input,
+            filter_shape=filter_shapes[i],
+            poolsize=pool_size,
+            image_shape=image_shapes[i],
+            non_linear="relu"
+        )
+
+        conv_layers.append(conv_layer)
+        conv_layer_outputs.append(conv_layer.output.flatten(2))
+
+    conv_outputs = T.concatenate(conv_layer_outputs, 1)
+    addition = add.dimshuffle(0, 'x')
+    mlp_input = T.concatenate([conv_outputs, addition], 1)
+
+    classifier = MLPDropout(
+        rng=rng,
+        input=mlp_input,
+        layer_sizes=[feature_maps * len(filter_hs) + 1, label_size],
+        dropout_rate=0.5,
+        activation=Iden
+    )
+
+    params = []
+    for conv_layer in conv_layers:
+        params += conv_layer.params
+    params += classifier.params
+
+    cost = classifier.negative_log_likelihood(y)
+    updates = sgd_updates_adadelta(params, cost)
+
+    n_batches = train_x.shape.eval()[0] / batch_size
+    print 'train size: ' + str(train_x.shape.eval()[0])
+    print 'batch amount is: ' + str(n_batches)
+    sys.exit()
+
+    train_model = theano.function(
+        inputs=[batch_index],
+        outputs=cost,
+        updates=updates,
+        givens={
+            x: train_x[batch_index],
+            y: train_y[batch_index],
+            add: train_add[batch_index],
+        },
+    )
+
+    """
+    Building test model
+    """
+    test_conv_layer_outputs = []
+    for i, conv_layer in enumerate(conv_layers):
+        test_input = w2v_shared[x.flatten()].reshape(
+            (x.shape[0], 1, x.shape[1], x.shape[2] * img_w)
+        )[:, :, :, 0:filter_hs[i] * img_w]
+        test_conv_layer_outputs.append(
+            conv_layer.conv_layer_output(
+                test_input,
+                (test_x.shape.eval()[0], 1, img_h, img_w * filter_hs[i])
+            ).flatten(2)
+        )
+    test_prediction = classifier.predict(
+        T.concatenate([T.concatenate(test_conv_layer_outputs, 1), add.dimshuffle(0, 'x')], 1))
+
+    test_model = theano.function(
+        inputs=[],
+        outputs=test_prediction,
+        givens={
+            x: test_x,
+            add: test_add,
+        }
+    )
+
+    """
+    Training part
+    """
+    print 'training....'
+    bestep = 0
+    bestacc = 0.
+    epoch = 0
+
+    open(logFile, 'w').close()
+
+    # create gold value sequences, required by the eval.py
+    with open('../exp/goldrs', 'w') as writer:
+        for lbl in gold_test_y:
+            writer.write(str(lbl) + '\n')
+
+    # training loop
+    while (epoch < n_epochs):
+        epoch += 1
+        print '************* epoch ' + str(epoch)
+        batch_indexes = range(train_size)
+        rng.shuffle(batch_indexes)
+        for bchidx in xrange(n_batches):
+            random_indexes = batch_indexes[bchidx * batch_size:(bchidx + 1) * batch_size]
+            train_cost = train_model(random_indexes)
+        print 'training done!'
 
         test_y_preds = test_model()
         test_acc = eval.accuracy(gold_test_y, test_y_preds)

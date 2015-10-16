@@ -381,6 +381,7 @@ def construct_additional_features(trainfile, testfile, featurelist='featurelist'
             else:
                 additional_features.append(0.0)
         np_add_feats = np.asarray(additional_features, dtype=np.float32)
+        print np_add_feats.shape
         additional_data.append(np_add_feats)
     dataset_output = open('../exp/addfeats', 'wb')
     cPickle.dump(additional_data, dataset_output, -1)
@@ -539,7 +540,7 @@ def datasetConstructRundown(eng_proportion, ch_proportion):
     print 'max length is: ' + str(dataset[0][0].shape[1])
     print 'training set size: ' + str(dataset[0][0].shape)
     print 'test set size: ' + str(dataset[1][0].shape)
-    construct_additional_features(eng_train_file, eng_test_file)
+    construct_additional_features(eng_train_file, ch_test_file)
 
     dataset_output = open(outputDataFile, 'wb')
     cPickle.dump(dataset, dataset_output, -1)
@@ -547,5 +548,5 @@ def datasetConstructRundown(eng_proportion, ch_proportion):
 
 
 if __name__ == '__main__':
-    datasetConstructRundown()
+    datasetConstructRundown(10, 0)
 

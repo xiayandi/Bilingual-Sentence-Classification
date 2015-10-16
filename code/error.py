@@ -26,7 +26,7 @@ def findErrors(predictionFile, goldFile, testCorpusFile, label_vector):
         if predslines[i] != goldlines[i]:
             errorPredsInsts.append(label_vector[int(predslines[i])] + '\t' + textlines[i])
 
-    errorFile = '../exp/error_analysis2'
+    errorFile = '../exp/error_analysis'
     with open(errorFile, 'w') as writer:
         writer.writelines(errorPredsInsts)
 
@@ -54,7 +54,7 @@ def findCorrects(predictionFile, goldFile, testCorpusFile, label_vector):
         if predslines[i] == goldlines[i]:
             correctPredsInsts.append(label_vector[int(predslines[i])] + '\t' + textlines[i])
 
-    correctFile = '../exp/correct_analysis2'
+    correctFile = '../exp/correct_analysis'
     with open(correctFile, 'w') as writer:
         writer.writelines(correctPredsInsts)
 
