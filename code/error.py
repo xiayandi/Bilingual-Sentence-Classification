@@ -1,6 +1,7 @@
 __author__ = 'yandixia'
 
 import process_qc
+import numpy as np
 
 
 def findErrors(predictionFile, goldFile, testCorpusFile, label_vector):
@@ -74,6 +75,50 @@ def compareErrors(errfile1, errfile2):
     print count
 
 
+def label_distribution():
+    with open('../data/QC/Chinese_qc/finaltest', 'r') as reader:
+        lines = reader.readlines()
+    label_dict = {}
+    for line in lines:
+        labels = line.split('\t')[0]
+        clabel = labels.split(':')[0]
+        if clabel in label_dict:
+            label_dict[clabel] += 1
+        else:
+            label_dict[clabel] = 1
+    for key, val in label_dict.items():
+        print key + ' ' + str(val)
+
+
+def duplicate_abbr():
+    with open('../data/QC/TREC/trimengqctrain', 'r') as reader:
+        lines = reader.readlines()
+    with open('../exp/eng_qc_train_dep') as reader:
+        deplines = reader.readlines()
+    assert len(lines) == len(deplines)
+    duplines = []
+    dupdeplines = []
+    for i, line in enumerate(lines):
+        labels = line.split('\t')[0]
+        clabel = labels.split(':')[0]
+        if clabel == 'ABBR':
+            duplines.extend([line] * 10)
+            dupdeplines.extend([deplines[i]] * 10)
+        else:
+            duplines.append(line)
+            dupdeplines.append(deplines[i])
+
+    rng = np.random.RandomState(1234)
+    indexes = rng.permutation(range(len(duplines)))
+    permutelines = [duplines[i] for i in indexes]
+    permutedeplines = [dupdeplines[i] for i in indexes]
+
+    with open('../exp/duptrain', 'w') as writer:
+        writer.writelines(permutelines)
+
+    with open('../exp/dupdeptrain', 'w') as writer:
+        writer.writelines(permutedeplines)
+
 
 def sortTrecTrain():
     trectrainfile = '../data/QC/TREC/lemmaFormatTrain'
@@ -96,4 +141,4 @@ def errorAnalysisRundown():
 if __name__ == '__main__':
     errorAnalysisRundown()
     # sortTrecTrain()
-    #compareErrors('../exp/error_analysis1', '../exp/error_analysis2')
+    # compareErrors('../exp/error_analysis1', '../exp/error_analysis')

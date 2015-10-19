@@ -391,8 +391,6 @@ def rundown():
 
 
 if __name__ == "__main__":
-    #rundown()
-    outputBasicDependencyTriples('../exp/eng_qc_train.xml', '../exp/eng_qc_train_dep')
-    outputBasicDependencyTriples('../exp/eng_qc_test.xml', '../exp/eng_qc_test_dep')
+    rundown()
 
 

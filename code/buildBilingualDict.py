@@ -9,7 +9,7 @@ This module provide a way to build bilingual (English and Chinese) dictionary
 """
 
 
-def buildEnglishVocab(segCorpusFile, vocabFile):
+def _buildEnglishVocab(segCorpusFile, vocabFile):
     """
     func: get vocab from segmented English corpus file
     param: segCorpusFile: a segmented corpus file path. sentence per line.
@@ -41,6 +41,27 @@ def buildEnglishVocab(segCorpusFile, vocabFile):
             voc_line = word + '\t' + str(count) + '\n'
             writer.write(voc_line)
     print 'output vocabulary done.'
+
+
+def trimBilingualDictionary(bilingual_dict_file, trimed_bilingual_dict_file):
+    with codecs.open(bilingual_dict_file, 'r', 'utf-8') as reader:
+        entrylines = reader.readlines()
+    newlines = []
+    for line in entrylines:
+        chword = line.split('\t')[0]
+        enpart = line.split('\t')[1].strip().strip('/')
+        enwords = enpart.split('/')
+        trimedenwords = []
+        for ewd in enwords:
+            if '(' in ewd or len(ewd.split()) > 1:
+                continue
+            else:
+                trimedenwords.append(ewd)
+        if len(trimedenwords) != 0:
+            newlines.append(chword + '\t/' + '/'.join(trimedenwords) + '/\n')
+    with codecs.open(trimed_bilingual_dict_file, 'w', 'utf-8') as writer:
+        writer.writelines(newlines)
+
 
 
 def loadBilingualDictionary(bilingual_dict_file):
@@ -83,4 +104,4 @@ def loadBilingualDictionary(bilingual_dict_file):
 
 
 if __name__ == '__main__':
-    loadBilingualDictionary('../data/bilingual_dict.lst')
+    trimBilingualDictionary('../data/bilingual_dict.lst', '../data/trimed_bilingual_dict.lst')

@@ -221,4 +221,4 @@ def mixEnglishCorpus(CorpusFile, mixedCorpusFile):
 
 
 if __name__ == '__main__':
-    mixEnglishCorpus('../data/pre_1bwlmb', '../data/mixed_1bwlmb')
+    mixEnglishCorpus('../data/pre_1bwlmb', '../data/mixed_1bwlmb2')
