@@ -162,7 +162,7 @@ def mixChineseCorpus(CorpusFile, mixedCorpusFile):
         corpuslines = reader.readlines()
     print 'reading Chinese corpus done...'
 
-    eng2ch, ch2eng = buildBilingualDict.loadBilingualDictionary('../data/bilingual_dict.lst')
+    eng2ch, ch2eng = buildBilingualDict.loadBilingualDictionary('../data/trimed_bilingual_dict.lst')
 
     buffsize = 1000000
     buffnum = len(corpuslines) / buffsize + 1
@@ -195,7 +195,7 @@ def mixEnglishCorpus(CorpusFile, mixedCorpusFile):
         corpuslines = reader.readlines()
     print 'reading English corpus done...'
 
-    eng2ch, ch2eng = buildBilingualDict.loadBilingualDictionary('../data/bilingual_dict.lst')
+    eng2ch, ch2eng = buildBilingualDict.loadBilingualDictionary('../data/trimed_bilingual_dict.lst')
 
     buffsize = 1000000
     buffnum = len(corpuslines) / buffsize + 1
@@ -222,3 +222,4 @@ def mixEnglishCorpus(CorpusFile, mixedCorpusFile):
 
 if __name__ == '__main__':
     mixEnglishCorpus('../data/pre_1bwlmb', '../data/mixed_1bwlmb2')
+    mixChineseCorpus('../data/pre_gigacorpus', '../data/mixed_gigacorpus')

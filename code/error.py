@@ -120,6 +120,24 @@ def duplicate_abbr():
         writer.writelines(permutedeplines)
 
 
+def statNUMclass(errorfile):
+    import codecs
+
+    with codecs.open(errorfile, 'r', 'utf-8') as reader:
+        lines = reader.readlines()
+    count = 0
+    for line in lines:
+        items = line.split('\t')
+        predlbl = items[0]
+        turelbl = items[1].split(':')[0]
+        sentence = items[2]
+        if turelbl == 'NUM':
+            if u'\u591a\u5c11' in sentence:
+                count += 1
+                print line.strip()
+    print count
+
+
 def sortTrecTrain():
     trectrainfile = '../data/QC/TREC/lemmaFormatTrain'
     sortedtrectrainfile = '../exp/sortedlemmatrectrain'
@@ -139,6 +157,5 @@ def errorAnalysisRundown():
 
 
 if __name__ == '__main__':
-    errorAnalysisRundown()
-    # sortTrecTrain()
-    # compareErrors('../exp/error_analysis1', '../exp/error_analysis')
+    # errorAnalysisRundown()
+    statNUMclass('../exp/error_analysis')

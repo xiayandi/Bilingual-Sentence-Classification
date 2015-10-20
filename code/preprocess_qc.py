@@ -255,6 +255,10 @@ def coreNLPChineseSegment(formattedfile, segfile, coreNLPresultFile):
             words.append(word)
         segsents.append(' '.join(words))
 
+    print len(segsents)
+    print len(queris)
+    assert len(segsents) == len(queris)
+
     seginstlines = []
     for i, sent in enumerate(segsents):
         seginstlines.append(flbls[i] + '\t' + sent + '\n')
@@ -300,6 +304,15 @@ def coreNLPparser(formattedFile, lang, rawsentfile):
         for q in queris:
             writer.write(q + '\n')
 
+    if lang == 'ch':
+        command = 'bash coreNLPchinese.sh ' + rawsentfile
+        os.system(command)
+    else:
+        command = 'bash coreNLPenglish.sh ' + rawsentfile
+        os.system(command)
+
+
+def runCoreNLP(rawsentfile, lang):
     if lang == 'ch':
         command = 'bash coreNLPchinese.sh ' + rawsentfile
         os.system(command)
@@ -390,7 +403,55 @@ def rundown():
     outputBasicDependencyTriples('../exp/eng_qc_test.xml', '../exp/eng_qc_test_dep')
 
 
+def checkDifference(file1):
+    # parsing the output of coreNLP
+    tree = ET.parse(file1)
+    root = tree.getroot()
+    segsents = []
+
+    for sentence in root.iter('sentence'):
+        words = []
+        for token in sentence.iter('token'):
+            word = token.find('word').text
+            words.append(word)
+        segsents.append(''.join(words))
+    charset = set()
+    for sent in segsents:
+        charset.add(sent[-1])
+    for char in charset:
+        print char
+
+
+def preprocessTrans(transfile):
+    with codecs.open(transfile, 'r', 'utf-8') as reader:
+        lines = reader.readlines()
+    qm = u'\uff1f'  # chinese question mark
+    for i, line in enumerate(lines):
+        lines[i] = line[:-2].replace(qm, '') + qm + '\n'
+    for i, line in enumerate(lines):
+        if line.strip()[-1] != qm:
+            lines[i] = line.strip()[:-1] + qm + '\n'
+    with codecs.open(transfile, 'w', 'utf-8') as writer:
+        writer.writelines(lines)
+
+
+def rundownOnTranslate():
+    runCoreNLP('../data/QC/translate/google_ch2eng_test', 'eng')
+    runCoreNLP('../data/QC/translate/google_eng2ch_train', 'ch')
+
+    coreNLPChineseSegment('../data/QC/TREC/trimengqctrain',
+                          '../data/QC/translate/final_google_eng2ch_train',
+                          '../exp/google_eng2ch_train.xml')
+    coreNLPChineseSegment('../data/QC/Chinese_qc/trimchqctest',
+                          '../data/QC/Chinese_qc/final_google_ch2eng_test',
+                          '../exp/google_ch2eng_test.xml')
+
+    outputBasicDependencyTriples('../exp/google_eng2ch_train.xml', '../exp/google_eng2ch_train_dep')
+    outputBasicDependencyTriples('../exp/google_ch2eng_test.xml', '../exp/google_ch2eng_test_dep')
+
+
 if __name__ == "__main__":
-    rundown()
+    preprocessTrans('../data/QC/translate/google_eng2ch_train')
+    rundownOnTranslate()
 
 
