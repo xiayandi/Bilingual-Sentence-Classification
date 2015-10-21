@@ -43,22 +43,37 @@ def _buildEnglishVocab(segCorpusFile, vocabFile):
     print 'output vocabulary done.'
 
 
-def trimBilingualDictionary(bilingual_dict_file, trimed_bilingual_dict_file):
+def getTestSetVocabSet(testfile):
+    with codecs.open(testfile, 'r', 'utf-8') as reader:
+        lines = reader.readlines()
+    vocabset = set()
+    for line in lines:
+        items = line.split('\t')
+        sent = items[-1].strip()
+        words = sent.split()
+        for word in words:
+            vocabset.add(word)
+    return vocabset
+
+
+def trimBilingualDictionary(bilingual_dict_file, trimed_bilingual_dict_file, testfile):
     with codecs.open(bilingual_dict_file, 'r', 'utf-8') as reader:
         entrylines = reader.readlines()
+    vocabset = getTestSetVocabSet(testfile)
     newlines = []
     for line in entrylines:
         chword = line.split('\t')[0]
-        enpart = line.split('\t')[1].strip().strip('/')
-        enwords = enpart.split('/')
-        trimedenwords = []
-        for ewd in enwords:
-            if '(' in ewd or len(ewd.split()) > 1:
-                continue
-            else:
-                trimedenwords.append(ewd)
-        if len(trimedenwords) != 0:
-            newlines.append(chword + '\t/' + '/'.join(trimedenwords) + '/\n')
+        if chword in vocabset:
+            enpart = line.split('\t')[1].strip().strip('/')
+            enwords = enpart.split('/')
+            trimedenwords = []
+            for ewd in enwords:
+                if '(' in ewd or len(ewd.split()) > 1:
+                    continue
+                else:
+                    trimedenwords.append(ewd)
+            if len(trimedenwords) != 0:
+                newlines.append(chword + '\t/' + '/'.join(trimedenwords) + '/\n')
     with codecs.open(trimed_bilingual_dict_file, 'w', 'utf-8') as writer:
         writer.writelines(newlines)
 
@@ -104,4 +119,5 @@ def loadBilingualDictionary(bilingual_dict_file):
 
 
 if __name__ == '__main__':
-    trimBilingualDictionary('../data/bilingual_dict.lst', '../data/trimed_bilingual_dict.lst')
+    trimBilingualDictionary('../data/bilingual_dict.lst', '../data/trimed_bilingual_dict.lst',
+                            '../data/QC/Chinese_qc/finaltest')
