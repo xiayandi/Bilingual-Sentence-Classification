@@ -78,6 +78,52 @@ def trimBilingualDictionary(bilingual_dict_file, trimed_bilingual_dict_file, tes
         writer.writelines(newlines)
 
 
+def phraseBilingualDictionary(bilingual_dict_file, phrase_bilingual_dict_file, phraseFile):
+    with codecs.open(bilingual_dict_file, 'r', 'utf-8') as reader:
+        entrylines = reader.readlines()
+    newlines = []
+    phraselist = []
+    for line in entrylines:
+        chword = line.split('\t')[0]
+        enpart = line.split('\t')[1].strip().strip('/')
+        enwords = enpart.split('/')
+        phrasedenwords = []
+        for ewd in enwords:
+            if '(' in ewd:
+                continue
+            wdlen = len(ewd.split())
+            if wdlen == 1:
+                phrasedenwords.append(ewd)
+            elif wdlen == 2:
+                phrasedenwords.append('_'.join(ewd.split()))
+                phraselist.append('_'.join(ewd.split()))
+        if len(phrasedenwords) != 0:
+            newlines.append(chword + '\t/' + '/'.join(phrasedenwords) + '/\n')
+    with codecs.open(phrase_bilingual_dict_file, 'w', 'utf-8') as writer:
+        writer.writelines(newlines)
+    with open(phraseFile, 'w') as writer:
+        for ph in phraselist:
+            writer.write(ph + '\n')
+
+
+def phraseMapping(phraseFile):
+    """
+    func: store phrase
+    :param phraseFile: the phrase file output by phraseBilingualDictionary()
+    :return: a map
+    """
+    with open(phraseFile, 'r') as reader:
+        phraselines = reader.readlines()
+    phrasemap = {}
+    for line in phraselines:
+        phrase = line.rstrip()
+        word1 = phrase.split('_')
+        word2 = phrase.split('_')
+        if word1 not in phrasemap:
+            phrasemap[word1] = set()
+        phrasemap[word1].add(word2)
+    return phrasemap
+
 
 def loadBilingualDictionary(bilingual_dict_file):
     """
@@ -119,5 +165,4 @@ def loadBilingualDictionary(bilingual_dict_file):
 
 
 if __name__ == '__main__':
-    trimBilingualDictionary('../data/bilingual_dict.lst', '../data/trimed_bilingual_dict.lst',
-                            '../data/QC/Chinese_qc/finaltest')
+    phraseBilingualDictionary('../data/bilingual_dict.lst', '../data/phrased_bilingual_dict.lst', '../data/phrase.lst')

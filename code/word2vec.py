@@ -100,8 +100,8 @@ def findUnkownWords(vocablist, w2vfile):
 def rundown():
     allw2v = '../data/blg250.txt'
     trimmedw2v = '../exp/blg250.pkl'
-    engtrainFile = '../data/QC/TREC/formatTrain'
-    engtestFile = '../data/QC/TREC/formatTest'
+    engtrainFile = '../data/QC/TREC/trimengqctrain'
+    engtestFile = '../data/QC/TREC/trimengqctest'
     chtrainFile = '../data/QC/Chinese_qc/finaltrain'
     chtestFile = '../data/QC/Chinese_qc/finaltest'
     filelist = [engtrainFile, engtestFile, chtestFile, chtrainFile]
@@ -112,10 +112,7 @@ def rundown():
 
 
 if __name__ == '__main__':
-    # rundown()
-    vocabFile = '../exp/vocab_bi.lst'
-    allw2v = '../data/blg250.txt'
-    findUnkownWords(vocabFile, allw2v)
+    rundown()
 
 
 

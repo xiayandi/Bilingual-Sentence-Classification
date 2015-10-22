@@ -75,6 +75,29 @@ def english_word_filter(word):
     return [word]
 
 
+def english_phrase_filter(words, phrasemap):
+    """
+    func: finding phrases within sentences
+    params: sentence: the sentence to be preprocessed
+    return: a list of seperated words. [] if word is to be removed.
+    """
+    newwords = []
+    switch = True
+    for i in xrange(len(words[:-1])):
+        if switch:
+            if words[i] in phrasemap:
+                if words[i + 1] in phrasemap[words[i]]:
+                    newwords.append(words[i] + '_' + words[i + 1])
+                    switch = False
+                else:
+                    newwords.append(words[i])
+            else:
+                newwords.append(words[i])
+        else:
+            switch = True
+    return newwords
+
+
 def preprocessEnglishCorpus(CorpusFile, preprocessedFile):
     """
     func: preprocess corpus
@@ -87,6 +110,7 @@ def preprocessEnglishCorpus(CorpusFile, preprocessedFile):
     buffsize = 250000000
     buffcount = 0
     open(preprocessedFile, 'w').close()
+    phrasemap = buildBilingualDict.phraseMapping('../data/phrase.lst')
     while True:
         outputbuffer = []
         lines = reader.readlines(buffsize)
@@ -100,6 +124,7 @@ def preprocessEnglishCorpus(CorpusFile, preprocessedFile):
             newwords = []
             for word in words:
                 newwords.extend(english_word_filter(word))
+            newwords = english_phrase_filter(newwords, phrasemap)
             outputbuffer.append(' '.join(newwords) + '\n')
         print 'writing buffer...'
         with open(preprocessedFile, 'a') as writer:
@@ -221,5 +246,6 @@ def mixEnglishCorpus(CorpusFile, mixedCorpusFile):
 
 
 if __name__ == '__main__':
-    mixEnglishCorpus('../data/pre_1bwlmb', '../data/mixed_1bwlmb')
-    mixChineseCorpus('../data/pre_gigacorpus', '../data/mixed_gigacorpus')
+    preprocessChineseCorpus('../data/1bwlmb', '../data/pre_phrase_1bwlmb')
+    # mixEnglishCorpus('../data/pre_1bwlmb', '../data/mixed_1bwlmb')
+    #mixChineseCorpus('../data/pre_gigacorpus', '../data/mixed_gigacorpus')
