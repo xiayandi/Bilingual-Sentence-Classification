@@ -98,7 +98,7 @@ def findUnkownWords(vocablist, w2vfile):
 
 
 def rundown():
-    allw2v = '../data/blg250.txt'
+    allw2v = '../data/blg250_testvocabsize.txt'
     trimmedw2v = '../exp/blg250.pkl'
     engtrainFile = '../data/QC/TREC/trimengqctrain'
     engtestFile = '../data/QC/TREC/trimengqctest'
