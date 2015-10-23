@@ -117,8 +117,8 @@ def phraseMapping(phraseFile):
     phrasemap = {}
     for line in phraselines:
         phrase = line.rstrip()
-        word1 = phrase.split('_')
-        word2 = phrase.split('_')
+        word1 = phrase.split('_')[0]
+        word2 = phrase.split('_')[1]
         if word1 not in phrasemap:
             phrasemap[word1] = set()
         phrasemap[word1].add(word2)
