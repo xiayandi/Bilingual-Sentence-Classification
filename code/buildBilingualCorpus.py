@@ -246,6 +246,6 @@ def mixEnglishCorpus(CorpusFile, mixedCorpusFile):
 
 
 if __name__ == '__main__':
-    preprocessChineseCorpus('../data/1bwlmb', '../data/pre_phrase_1bwlmb')
+    preprocessEnglishCorpus('../data/1bwlmb', '../data/pre_phrase_1bwlmb')
     # mixEnglishCorpus('../data/pre_1bwlmb', '../data/mixed_1bwlmb')
     #mixChineseCorpus('../data/pre_gigacorpus', '../data/mixed_gigacorpus')
