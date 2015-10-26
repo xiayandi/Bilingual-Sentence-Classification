@@ -157,5 +157,5 @@ def errorAnalysisRundown():
 
 
 if __name__ == '__main__':
-    # errorAnalysisRundown()
-    statNUMclass('../exp/error_analysis')
+    errorAnalysisRundown()
+    #statNUMclass('../exp/error_analysis')
