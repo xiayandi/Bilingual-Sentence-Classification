@@ -98,14 +98,16 @@ def findUnkownWords(vocablist, w2vfile):
 
 
 def rundown():
-    allw2v = '../data/blg250_testvocabsize.txt'
+    allw2v = '../data/blg250_all_phrase.txt'
     trimmedw2v = '../exp/blg250.pkl'
-    engtrainFile = '../data/QC/TREC/trimengqctrain'
-    engtestFile = '../data/QC/TREC/trimengqctest'
+    engtrainFile = '../data/QC/TREC/phraseengqctrain'
+    ##engtestFile = '../data/QC/TREC/trimengqctest'
     chtrainFile = '../data/QC/Chinese_qc/finaltrain'
     chtestFile = '../data/QC/Chinese_qc/finaltest'
-    filelist = [engtrainFile, engtestFile, chtestFile, chtrainFile]
-    encodings = [None, None, 'utf-8', 'utf-8']
+    ##filelist = [engtrainFile, engtestFile, chtestFile, chtrainFile]
+    filelist = [engtrainFile, chtestFile, chtrainFile]
+    ##encodings = [None, None, 'utf-8', 'utf-8']
+    encodings = [None, 'utf-8', 'utf-8']
     vocabFile = '../exp/vocab_bi.lst'
     outputAllVocabList(filelist, encodings, vocabFile)
     construct_w2v(250, vocabFile, allw2v, trimmedw2v)
