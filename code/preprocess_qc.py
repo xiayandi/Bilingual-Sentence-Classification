@@ -478,7 +478,7 @@ def mergeDependencyTree(deptriples, sentence, phrasemap):
 def formDependencyTripleLine(deptriplelist):
     depline = ''
     for triple in deptriplelist:
-        depline += '('+triple[0]+','+triple[1]+','+triple[2]+')@'
+        depline += '('+str(triple[0])+','+triple[1]+','+str(triple[2])+')@'
     depline = depline.rstrip('@') + '\n'
     return depline
 
