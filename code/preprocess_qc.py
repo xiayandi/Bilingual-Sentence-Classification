@@ -3,6 +3,8 @@ import codecs
 import sys
 import os
 import xml.etree.ElementTree as ET
+from util import readInDependencyTriples, getTreeStructure, getAncestors
+import buildBilingualDict
 
 
 def formatChineseQC(rawfile, targetfile):
@@ -403,26 +405,120 @@ def rundown():
     outputBasicDependencyTriples('../exp/eng_qc_test.xml', '../exp/eng_qc_test_dep')
 
 
-def checkDifference(file1):
-    # parsing the output of coreNLP
-    tree = ET.parse(file1)
-    root = tree.getroot()
-    segsents = []
+def word2phrase_sentencelevel(sentence, phrasemap):
+    """
+    func: transfer word based sentence into phrase based one
+    :param sentence:  the sentence that needs to be transferred
+    :param phrasemap: a phrase storing structure variable
+    :return: the transferred sentence
+    """
+    words = sentence.split()
+    newwords = []
+    switch = True
+    for i in xrange(len(words[:-1])):
+        if switch:
+            if words[i] in phrasemap:
+                if words[i + 1] in phrasemap[words[i]]:
+                    newwords.append(words[i] + '_' + words[i + 1])
+                    switch = False
+                else:
+                    newwords.append(words[i])
+            else:
+                newwords.append(words[i])
+        else:
+            switch = True
+    return ' '.join(newwords)
 
-    for sentence in root.iter('sentence'):
-        words = []
-        for token in sentence.iter('token'):
-            word = token.find('word').text
-            words.append(word)
-        segsents.append(''.join(words))
-    charset = set()
-    for sent in segsents:
-        charset.add(sent[-1])
-    for char in charset:
-        print char
+
+def mergeTwoNodesInTree(idx1, idx2, deptriples):
+    assert idx1 == idx2-1
+    g2d, d2g = getTreeStructure(deptriples)
+    newTree = []
+    vevset = set()
+    for triple in deptriples:
+        tup_1 = triple[0]
+        tup_2 = triple[1]
+        tup_3 = triple[2]
+        if tup_1 > idx1:
+            tup_1 -= 1
+        if tup_3 > idx1:
+            tup_3 -= 1
+        if (tup_1, tup_3) not in vevset:
+            vevset.add((tup_1, tup_3))
+            newTree.append((tup_1, tup_2, tup_3))
+    return newTree
+
+
+def mergeDependencyTree(deptriples, sentence, phrasemap):
+    """
+    func: merge nodes that form phrases in the dependency tree
+    :param deptriples: a dependency tree in the form of V.E.V. triple set
+    :param sentence: corresponding word based sentence
+    :param phrasemap: a phrase storing structure in buildingBilingualDict.py
+    :return: a new set of dependency triples
+    """
+    # looking for phrases
+    words = sentence.split()
+    wordidxs = []
+    switch = True
+    for i in xrange(len(words[:-1])):
+        if switch:
+            if words[i] in phrasemap:
+                if words[i + 1] in phrasemap[words[i]]:
+                    wordidxs.append((i, i+1))
+                    switch = False
+        else:
+            switch = True
+    newTree = deptriples
+    for i, (wdidx1, wdidx2) in enumerate(wordidxs):
+        newTree = mergeTwoNodesInTree(wdidx1-i, wdidx2-i, newTree)
+    return newTree
+
+
+def formDependencyTripleLine(deptriplelist):
+    depline = ''
+    for triple in deptriplelist:
+        depline += '('+triple[0]+','+triple[1]+','+triple[2]+')@'
+    depline = depline.rstrip('@') + '\n'
+    return depline
+
+
+def word2phrase_filelevel(formatCorpusFile, depFile, outputPhraseCorpusFile, outputPhraseDepFile):
+    """
+    func: transfer word based corpus into phrase based one
+    :param formatCorpusFile: the file that needs to be transfered
+    :param depFile: the corresponding dependency file
+    :param outputPhraseCorpusFile: the transfered phrase based output file
+    :param outputPhraseDepFile: the transfered phrase based dependency file
+    :return: n/a
+    """
+    phrasemap = buildBilingualDict.phraseMapping('../data/phrase.lst')
+    sentences_triples = readInDependencyTriples(depFile)
+    sentences, clbls, flbls = get_english_raw_sentences_labels(formatCorpusFile)
+    assert len(sentences) == len(sentences_triples)
+
+    newDepinfo = []
+    newCorpus = []
+
+    for i, sent in enumerate(sentences):
+        sent_triples = sentences_triples[i]
+        newdeps = mergeDependencyTree(sent_triples, sent, phrasemap)
+        newsent = word2phrase_sentencelevel(sent, phrasemap)
+        newDepinfo.append(formDependencyTripleLine(newdeps))
+        newCorpus.append(flbls+'\t'+newsent+'\n')
+
+    with open(outputPhraseCorpusFile, 'w') as writer:
+        writer.writelines(newCorpus)
+    with open(outputPhraseDepFile, 'w') as writer:
+        writer.writelines(newDepinfo)
 
 
 def preprocessTrans(transfile):
+    """
+    func: adding Chinese format question mark at the end
+    :param transfile: the translated file by Google translation
+    :return: n/a
+    """
     with codecs.open(transfile, 'r', 'utf-8') as reader:
         lines = reader.readlines()
     qm = u'\uff1f'  # chinese question mark
@@ -451,7 +547,8 @@ def rundownOnTranslate():
 
 
 if __name__ == "__main__":
-    preprocessTrans('../data/QC/translate/google_eng2ch_train')
-    rundownOnTranslate()
+    #rundownOnTranslate()
+    word2phrase_filelevel('../data/QC/TREC/trimengqctrain', '../exp/eng_qc_train_dep', '../data/QC/TREC/phraseengtrain',
+                          '../exp/phrase_eng_qc_train_dep')
 
 
