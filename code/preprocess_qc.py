@@ -413,18 +413,19 @@ def word2phrase_sentencelevel(sentence, phrasemap):
     :return: the transferred sentence
     """
     words = [wd.lower() for wd in sentence.split()]
+    orig_words = sentence.split()
     newwords = []
     switch = True
     for i in xrange(len(words[:-1])):
         if switch:
             if words[i] in phrasemap:
                 if words[i + 1] in phrasemap[words[i]]:
-                    newwords.append(words[i] + '_' + words[i + 1])
+                    newwords.append(orig_words[i] + '_' + orig_words[i + 1])
                     switch = False
                 else:
-                    newwords.append(words[i])
+                    newwords.append(orig_words[i])
             else:
-                newwords.append(words[i])
+                newwords.append(orig_words[i])
         else:
             switch = True
     return ' '.join(newwords)
@@ -458,7 +459,7 @@ def mergeDependencyTree(deptriples, sentence, phrasemap):
     :return: a new set of dependency triples
     """
     # looking for phrases
-    words = [wd.lower() for wd in sentence.split()]
+    words = ['ROOT']+[wd.lower() for wd in sentence.split()]
     wordidxs = []
     switch = True
     for i in xrange(len(words[:-1])):
