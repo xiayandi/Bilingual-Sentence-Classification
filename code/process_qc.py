@@ -384,7 +384,7 @@ def datasetConstructRundown(eng_proportion, ch_proportion):
     #eng_train_file = '../data/QC/TREC/trimengqctrain'  # '../data/QC/TREC/formatTrain'  # English training file original order
     #eng_dep_file_train = '../exp/eng_qc_train_dep'  # English dependency triple file
 
-    eng_train_file = '../data/QC/TREC/phraseengqctrain'  # '../data/QC/TREC/formatTrain'  # English training file original order
+    eng_train_file = '../data/QC/TREC/phraseengtrain'  # '../data/QC/TREC/formatTrain'  # English training file original order
     eng_dep_file_train = '../exp/phrase_eng_qc_train_dep'  # English dependency triple file
 
     eng_dep_train_file = '../exp/eng_qc_dep_train'  # English dependency based training file

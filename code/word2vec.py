@@ -100,7 +100,7 @@ def findUnkownWords(vocablist, w2vfile):
 def rundown():
     allw2v = '../data/blg250_all_phrase.txt'
     trimmedw2v = '../exp/blg250.pkl'
-    engtrainFile = '../data/QC/TREC/phraseengqctrain'
+    engtrainFile = '../data/QC/TREC/phraseengtrain'
     ##engtestFile = '../data/QC/TREC/trimengqctest'
     chtrainFile = '../data/QC/Chinese_qc/finaltrain'
     chtestFile = '../data/QC/Chinese_qc/finaltest'

@@ -412,8 +412,10 @@ def word2phrase_sentencelevel(sentence, phrasemap):
     :param phrasemap: a phrase storing structure variable
     :return: the transferred sentence
     """
-    words = [wd.lower() for wd in sentence.split()]
+    ##words = [wd.lower() for wd in sentence.split()]+['PADDING']
+    words = [wd.lower() for wd in sentence.split()] + ['PADDING']
     orig_words = sentence.split()
+    orig_words[0] = orig_words[0].lower()
     newwords = []
     switch = True
     for i in xrange(len(words[:-1])):

@@ -328,7 +328,7 @@ def rundown():
     dataFile = '../exp/dataset_bi.pkl'
     labelStructureFile = '../exp/label_struct_bi'
     cfswitch = 'c'
-    filter_hs = [1, 3, 4, 5]
+    filter_hs = [1, 3]  # , 4]#, 5]
     n_epochs = 100
     batch_size = 170
     feature_maps = 100  # 150
