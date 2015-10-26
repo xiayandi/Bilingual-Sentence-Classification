@@ -412,7 +412,7 @@ def word2phrase_sentencelevel(sentence, phrasemap):
     :param phrasemap: a phrase storing structure variable
     :return: the transferred sentence
     """
-    words = sentence.split()
+    words = [wd.lower() for wd in sentence.split()]
     newwords = []
     switch = True
     for i in xrange(len(words[:-1])):
@@ -458,7 +458,7 @@ def mergeDependencyTree(deptriples, sentence, phrasemap):
     :return: a new set of dependency triples
     """
     # looking for phrases
-    words = sentence.split()
+    words = [wd.lower() for wd in sentence.split()]
     wordidxs = []
     switch = True
     for i in xrange(len(words[:-1])):
