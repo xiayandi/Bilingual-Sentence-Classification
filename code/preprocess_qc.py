@@ -505,7 +505,7 @@ def word2phrase_filelevel(formatCorpusFile, depFile, outputPhraseCorpusFile, out
         newdeps = mergeDependencyTree(sent_triples, sent, phrasemap)
         newsent = word2phrase_sentencelevel(sent, phrasemap)
         newDepinfo.append(formDependencyTripleLine(newdeps))
-        newCorpus.append(flbls+'\t'+newsent+'\n')
+        newCorpus.append(flbls[i]+'\t'+newsent+'\n')
 
     with open(outputPhraseCorpusFile, 'w') as writer:
         writer.writelines(newCorpus)
