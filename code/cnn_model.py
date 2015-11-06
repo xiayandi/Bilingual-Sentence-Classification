@@ -64,8 +64,6 @@ def train_joint_conv_net(
         batch_size=50,
         feature_maps=100,
         mlphiddensize=100,
-        logFile='../exp/logprint',
-        logTest='../exp/logTest'
 ):
     """
     function: learning and testing sentence level Question Classification Task
@@ -234,8 +232,6 @@ def train_joint_conv_net(
     bestacc = 0.
     epoch = 0
 
-    open(logFile, 'w').close()
-
     # create gold value sequences, required by the eval.py
     with open('../exp/goldrs', 'w') as writer:
         for lbl in gold_test_y:
@@ -330,9 +326,12 @@ def rundown():
     cfswitch = 'c'
     filter_hs = [1, 3]  # , 4]#, 5]
     n_epochs = 100
-    batch_size = 170
-    feature_maps = 100  # 150
-    mlphiddensize = 60
+    # batch_size = 170
+    #   feature_maps = 100  # 150
+    #   mlphiddensize = 60
+    batch_size = 120
+    feature_maps = 110
+    mlphiddensize = 20
     logFile = '../exp/logprint'
     logTest = '../exp/logTest'
     process_qc.datasetConstructRundown(10, 0)
@@ -347,8 +346,6 @@ def rundown():
         batch_size=batch_size,
         feature_maps=feature_maps,
         mlphiddensize=mlphiddensize,
-        logFile=logFile,
-        logTest=logTest
     )
 
 
@@ -357,19 +354,19 @@ def exprun():
     dataFile = '../exp/dataset_bi.pkl'
     labelStructureFile = '../exp/label_struct_bi'
     cfswitch = 'c'
-    filter_hs = [3, 4, 5]
-    n_epochs = 40
+    filter_hs = [1, 3]  # , 4, 5]
+    n_epochs = 20
     batch_size = 170
     feature_maps = 100  # 150
     mlphiddensize = 60
     logFile = '../exp/logprint'
     logTest = '../exp/logTest'
 
-    ch_pps = [10, 9, 8, 7, 6, 5, 4, 3, 2, 1]
+    ch_pps = [10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0]
     accs = []
 
     for i, pp in enumerate(ch_pps):
-        process_qc.datasetConstructRundown(0, pp)
+        process_qc.datasetConstructRundown(10, pp)
         acc = train_joint_conv_net(
             w2vFile=w2vFile,
             dataFile=dataFile,
@@ -380,11 +377,51 @@ def exprun():
             batch_size=batch_size,
             feature_maps=feature_maps,
             mlphiddensize=mlphiddensize,
-            logFile=logFile,
-            logTest=logTest
         )
         accs.append(acc)
     print accs
+
+
+def structureSelection():
+    w2vFile = '../exp/blg250.pkl'
+    dataFile = '../exp/dataset_bi.pkl'
+    labelStructureFile = '../exp/label_struct_bi'
+    cfswitch = 'c'
+    filter_hs = [1, 3]  # , 4]#, 5]
+    n_epochs = 30
+    batch_sizes = [100, 120, 140, 160, 170, 180, 200, 220, 240]
+    feature_mapss = [50, 70, 90, 100, 110, 130, 150]  # 150
+    mlphiddensizes = [20, 40, 50, 60, 70, 90, 110]
+    logFile = '../exp/selectionlog'
+    open(logFile, 'w').close()
+    best_acc = 0.0
+    best_batch_size = 0
+    best_fm = 0
+    best_mlp = 0
+
+    for batch_size in batch_sizes:
+        for feature_maps in feature_mapss:
+            for mlphiddensize in mlphiddensizes:
+                acc = train_joint_conv_net(
+                    w2vFile=w2vFile,
+                    dataFile=dataFile,
+                    labelStructureFile=labelStructureFile,
+                    cfswitch=cfswitch,
+                    filter_hs=filter_hs,
+                    n_epochs=n_epochs,
+                    batch_size=batch_size,
+                    feature_maps=feature_maps,
+                    mlphiddensize=mlphiddensize,
+                )
+                if acc > best_acc:
+                    best_acc = acc
+                    best_batch_size = batch_size
+                    best_fm = feature_maps
+                    best_mlp = mlphiddensize
+                    with open(logFile, 'a') as writer:
+                        writer.write(
+                            'best acc:' + str(best_acc) + ' best_btch:' + str(best_batch_size) + ' best_fm:' + str(
+                                best_fm) + ' best_mlp:' + str(best_mlp) + '\n')
 
 
 if __name__ == '__main__':

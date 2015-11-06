@@ -379,24 +379,27 @@ def datasetConstructRundown(eng_proportion, ch_proportion):
     that is required by CNN model.
     """
     #eng_train_file = '../data/QC/translate/final_google_eng2ch_train'  # '../data/QC/TREC/formatTrain'  # English training file original order
-    #eng_dep_file_train = '../exp/google_eng2ch_train_dep'  # English dependency triple file
 
     #eng_train_file = '../data/QC/TREC/trimengqctrain'  # '../data/QC/TREC/formatTrain'  # English training file original order
-    #eng_dep_file_train = '../exp/eng_qc_train_dep'  # English dependency triple file
 
-    eng_train_file = '../data/QC/TREC/phraseengtrain'  # '../data/QC/TREC/formatTrain'  # English training file original order
-    eng_dep_file_train = '../exp/phrase_eng_qc_train_dep'  # English dependency triple file
+    # eng_train_file = '../data/QC/TREC/phraseengtrain'  # '../data/QC/TREC/formatTrain'  # English training file original order
 
-    eng_dep_train_file = '../exp/eng_qc_dep_train'  # English dependency based training file
-    eng_test_file = '../data/QC/TREC/trimengqctest'
-    eng_dep_file_test = '../exp/eng_qc_test_dep'
-    eng_dep_test_file = '../exp/eng_qc_dep_test'
-    ch_train_file = '../data/QC/Chinese_qc/finaltrain'
-    ch_dep_file_train = '../exp/ch_qc_train_dep'
-    ch_dep_train_file = '../exp/ch_qc_dep_train'
-    ch_test_file = '../data/QC/Chinese_qc/finaltest'
-    ch_dep_file_test = '../exp/ch_qc_test_dep'
-    ch_dep_test_file = '../exp/ch_qc_dep_test'
+    #eng_train_file_base = '../data/QC/translate/final_moses_eng2ch_train'
+
+    eng_train_file_base = '../data/QC/TREC/trimengqctrain'
+    eng_train_file = eng_train_file_base + '.phr'  # '../data/QC/TREC/formatTrain'  # English training file original order
+    eng_train_dep_file = eng_train_file_base + '.phr.dep'  # English dependency triple file
+    eng_tree_based_train_file = '../exp/eng_train.dat'  # English dependency based training file
+
+    ch_train_file_base = '../data/QC/Chinese_qc/finaltrain'
+    ch_train_file = ch_train_file_base + '.seg'
+    ch_train_dep_file = ch_train_file_base + '.dep'
+    ch_tree_based_train_file = '../exp/ch_train.dat'
+
+    ch_test_file_base = '../data/QC/Chinese_qc/finaltest'
+    ch_test_file = ch_test_file_base + '.seg'
+    ch_test_dep_file = ch_test_file_base + '.dep'
+    ch_tree_based_test_file = '../exp/test.dat'
 
     label_struct_file = '../exp/label_struct_bi'
     vocab_file = '../exp/vocab_bi.lst'
@@ -408,33 +411,28 @@ def datasetConstructRundown(eng_proportion, ch_proportion):
     lbl2idxmap = get_lbl_to_idx_map(label_struct_file)
 
     # find the global max sentence length
-    max_l = find_global_max_length([eng_train_file, eng_test_file, ch_train_file, ch_test_file])
+    max_l = find_global_max_length([eng_train_file, ch_test_file])
 
     if DepBased:
         # reorder sentences
         ancestorNum = 4  # max window size is 4+1
         filter_h = ancestorNum + 1  # window size
-        constructDependencyBasedData(ancestorNum, eng_train_file, eng_dep_file_train, eng_dep_train_file)
-        constructDependencyBasedData(ancestorNum, eng_test_file, eng_dep_file_test, eng_dep_test_file)
-        constructDependencyBasedData(ancestorNum, ch_train_file, ch_dep_file_train, ch_dep_train_file)
-        constructDependencyBasedData(ancestorNum, ch_test_file, ch_dep_file_test, ch_dep_test_file)
+        constructDependencyBasedData(ancestorNum, eng_train_file, eng_train_dep_file, eng_tree_based_train_file)
+        constructDependencyBasedData(ancestorNum, ch_train_file, ch_train_dep_file, ch_tree_based_train_file)
+        constructDependencyBasedData(ancestorNum, ch_test_file, ch_test_dep_file, ch_tree_based_test_file)
 
         # actual stage for constructing CNN data
-        eng_train_part = construct_dataset(eng_dep_train_file, filter_h, max_l, lbl2idxmap, vocab_file,
+        eng_train_part = construct_dataset(eng_tree_based_train_file, filter_h, max_l, lbl2idxmap, vocab_file,
                                            get_idx_from_dep_pattern)
-        eng_test_part = construct_dataset(eng_dep_test_file, filter_h, max_l, lbl2idxmap, vocab_file,
-                                          get_idx_from_dep_pattern)
-
-        ch_train_part = construct_dataset(ch_dep_train_file, filter_h, max_l, lbl2idxmap, vocab_file,
-                                          get_idx_from_dep_pattern)
-        ch_test_part = construct_dataset(ch_dep_test_file, filter_h, max_l, lbl2idxmap, vocab_file,
+        ch_train_part = construct_dataset(ch_tree_based_train_file, filter_h, max_l, lbl2idxmap, vocab_file,
+                                         get_idx_from_dep_pattern)
+        ch_test_part = construct_dataset(ch_tree_based_test_file, filter_h, max_l, lbl2idxmap, vocab_file,
                                          get_idx_from_dep_pattern)
 
     else:
         filter_h = 3
         # actual stage for constructing CNN data
         eng_train_part = construct_dataset(eng_train_file, filter_h, max_l, lbl2idxmap, vocab_file, get_idx_from_sent)
-        eng_test_part = construct_dataset(eng_test_file, filter_h, max_l, lbl2idxmap, vocab_file, get_idx_from_sent)
         ch_train_part = construct_dataset(ch_train_file, filter_h, max_l, lbl2idxmap, vocab_file, get_idx_from_sent)
         ch_test_part = construct_dataset(ch_test_file, filter_h, max_l, lbl2idxmap, vocab_file, get_idx_from_sent)
 

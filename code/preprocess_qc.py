@@ -7,35 +7,6 @@ from util import readInDependencyTriples, getTreeStructure, getAncestors
 import buildBilingualDict
 
 
-def formatChineseQC(rawfile, targetfile):
-    with codecs.open(rawfile, 'r', 'utf-8') as reader:
-        lines = reader.readlines()
-    formatedlines = []
-    for line in lines:
-        items = line.split('\t')
-        clabel, flabel = items[0].split('_')
-        sentence = items[1].strip()
-        if clabel[0] == u'\ufeff':
-            clabel = clabel[1:]
-            flabel = flabel
-        if sentence[-1] != u'\uff1f':
-            sentence += u'\uff1f'
-        formatedlines.append(clabel + ':' + flabel + '\t' + sentence + '\n')
-    with codecs.open(targetfile, 'w', 'utf-8') as writer:
-        writer.writelines(formatedlines)
-
-
-def formatTRECQC(rawfile, targetfile):
-    with open(rawfile, 'r') as reader:
-        lines = reader.readlines()
-    formatedlines = []
-    for line in lines:
-        items = line.split()
-        labels = items[0]
-        sentence = ' '.join(items[1:])
-        formatedlines.append(labels + '\t' + sentence + '\n')
-    with open(targetfile, 'w') as writer:
-        writer.writelines(formatedlines)
 
 
 def get_chinese_raw_sentences_labels(datafile):
@@ -63,7 +34,7 @@ def get_chinese_raw_sentences_labels(datafile):
     return [sentences, coarse_labels, fine_labels]
 
 
-def getChineseQCstructure(trainfile, output):
+def _getChineseQCstructure(trainfile, output):
     """
     function: given training file find the label structure automatically,
             and output it
@@ -114,7 +85,7 @@ def get_english_raw_sentences_labels(datafile):
     return [sentences, coarse_labels, fine_labels]
 
 
-def getEnglishQCstructure(trainfile, output):
+def _getEnglishQCstructure(trainfile, output):
     """
     function: given training file find the label structure automatically,
             and output it
@@ -138,100 +109,6 @@ def getEnglishQCstructure(trainfile, output):
             for cflbl in cflbls:
                 writer.write(cflbl + '\n')
             writer.write('\n')
-
-
-def getLabelMapping():
-    with open('../data/QC/label_mapping', 'r') as reader:
-        lmlines = reader.readlines()
-
-    lmidx = 0
-    clblmap = {}
-    for i, line in enumerate(lmlines):
-        if line[0] == '#':
-            continue
-        elif line.strip():
-            chlbl, treclbl = line.split()
-            clblmap[chlbl] = treclbl
-        else:
-            lmidx = i + 1
-            break
-
-    flblmap = {}
-    for i, line in enumerate(lmlines[lmidx:]):
-        if line[0] == '#':
-            continue
-        elif line.strip():
-            chlbl, treclbl = line.split()
-            flblmap[chlbl] = treclbl
-        else:
-            lmidx += i + 1
-            break
-
-    delset = set()
-    for i, line in enumerate(lmlines[lmidx:]):
-        if line[0] == '#':
-            continue
-        elif line.strip():
-            delset.add(line.strip())
-        else:
-            break
-    return clblmap, flblmap, delset
-
-
-def trimChineseQC(formatedchfile, trimmedfile):
-    """
-    :func delete unwanted labels and map chinese labels to TREC labels
-    :param formatedchfile: formatted chinese QC corpus using formatChineseQC() function
-    :param trimmedfile: the output trimmed file
-    :return: n/a
-    """
-    clblmap, flblmap, delset = getLabelMapping()
-
-    with codecs.open(formatedchfile, 'r', 'utf-8') as reader:
-        instlines = reader.readlines()
-
-    trimmedinstlines = []
-
-    for line in instlines:
-        items = line.split('\t')
-        clbl = items[0].split(':')[0]
-        flbl = items[0]
-        query = items[1]
-        if clbl in clblmap:
-            clbl = clblmap[clbl]
-            flbl = clbl + ':' + items[0].split(':')[1]
-        if flbl in flblmap:
-            flbl = flblmap[flbl]
-        if flbl not in delset:
-            trimmedinstlines.append(flbl + '\t' + query)
-    with codecs.open(trimmedfile, 'w', 'utf-8') as writer:
-        writer.writelines(trimmedinstlines)
-
-
-def trimEnglishQC(formatedengfile, trimmedfile):
-    """
-    :func delete unwanted labels and map chinese labels to TREC labels
-    :param formatedchfile: formatted chinese QC corpus using formatChineseQC() function
-    :param trimmedfile: the output trimmed file
-    :return: n/a
-    """
-    delset = {'ABBR:exp', 'LOC:state', 'LOC:other', 'HUM:title', 'NUM:other', 'ENTY:product',
-              'ENTY:techmeth', 'ENTY:termeq', 'ENTY:word', 'ENTY:letter', 'ENTY:other', 'ENTY:veh',
-              'ENTY:instru'}
-
-    with open(formatedengfile, 'r') as reader:
-        instlines = reader.readlines()
-
-    trimmedinstlines = []
-
-    for line in instlines:
-        items = line.split('\t')
-        flbl = items[0]
-        query = items[1]
-        if flbl not in delset:
-            trimmedinstlines.append(flbl + '\t' + query)
-    with open(trimmedfile, 'w') as writer:
-        writer.writelines(trimmedinstlines)
 
 
 def coreNLPChineseSegment(formattedfile, segfile, coreNLPresultFile):
@@ -259,7 +136,16 @@ def coreNLPChineseSegment(formattedfile, segfile, coreNLPresultFile):
 
     print len(segsents)
     print len(queris)
-    assert len(segsents) == len(queris)
+    try:
+        assert len(segsents) == len(queris)
+    except AssertionError:
+        with codecs.open('../exp/1111.txt', 'w', 'utf8') as writer:
+            for sent in segsents:
+                writer.write(sent + '\n')
+        with codecs.open('../exp/2222.txt', 'w', 'utf8') as writer:
+            for sent in queris:
+                writer.write(sent + '\n')
+        sys.exit()
 
     seginstlines = []
     for i, sent in enumerate(segsents):
@@ -298,7 +184,7 @@ def lemmatize(formattedCorpusFile, coreNLPResultFile, outputFile):
         writer.writelines(lemmatized_inst_lines)
 
 
-def coreNLPparser(formattedFile, lang, rawsentfile):
+def coreNLPparser(formattedFile, lang, rawsentfile, outputdir):
     # output raw queries
     queris, clbls, flbls = get_chinese_raw_sentences_labels(formattedFile)
 
@@ -307,10 +193,10 @@ def coreNLPparser(formattedFile, lang, rawsentfile):
             writer.write(q + '\n')
 
     if lang == 'ch':
-        command = 'bash coreNLPchinese.sh ' + rawsentfile
+        command = 'bash coreNLPchinese.sh ' + rawsentfile + ' ' + outputdir
         os.system(command)
     else:
-        command = 'bash coreNLPenglish.sh ' + rawsentfile
+        command = 'bash coreNLPenglish.sh ' + rawsentfile + ' ' + outputdir
         os.system(command)
 
 
@@ -371,38 +257,6 @@ def outputCollapsedDependencyTriples(coreNLPParseFile, depTripleOutputFile):
         sentences_deps.append(triples.rstrip('@') + '\n')
     with codecs.open(depTripleOutputFile, 'w', 'utf-8') as writer:
         writer.writelines(sentences_deps)
-
-
-def rundown():
-    formatChineseQC('../data/QC/Chinese_qc/trainutf8.txt', '../data/QC/Chinese_qc/formatTrain')
-    formatChineseQC('../data/QC/Chinese_qc/testutf8.txt', '../data/QC/Chinese_qc/formatTest')
-    formatTRECQC('../data/QC/TREC/train_5500.label', '../data/QC/TREC/formatTrain')
-    formatTRECQC('../data/QC/TREC/TREC_10.label', '../data/QC/TREC/formatTest')
-
-    trimChineseQC('../data/QC/Chinese_qc/formatTrain', '../data/QC/Chinese_qc/trimchqctrain')
-    trimChineseQC('../data/QC/Chinese_qc/formatTest', '../data/QC/Chinese_qc/trimchqctest')
-    trimEnglishQC('../data/QC/TREC/formatTrain', '../data/QC/TREC/trimengqctrain')
-    trimEnglishQC('../data/QC/TREC/formatTest', '../data/QC/TREC/trimengqctest')
-
-    coreNLPparser('../data/QC/Chinese_qc/trimchqctrain', 'ch', '../exp/ch_qc_train')
-    coreNLPparser('../data/QC/Chinese_qc/trimchqctest', 'ch', '../exp/ch_qc_test')
-    coreNLPparser('../data/QC/TREC/trimengqctrain', 'eng', '../exp/eng_qc_train')
-    coreNLPparser('../data/QC/TREC/trimengqctest', 'eng', '../exp/eng_qc_test')
-
-    coreNLPChineseSegment('../data/QC/Chinese_qc/trimchqctrain',
-                          '../data/QC/Chinese_qc/finaltrain',
-                          '../exp/ch_qc_train.xml')
-    coreNLPChineseSegment('../data/QC/Chinese_qc/trimchqctest',
-                          '../data/QC/Chinese_qc/finaltest',
-                          '../exp/ch_qc_test.xml')
-
-    # lemmatize('../data/QC/TREC/trimengqctrain', '../exp/eng_qc_train.xml', '../data/QC/TREC/lemmaFormatTrain')
-    #lemmatize('../data/QC/TREC/trimengqctest', '../exp/eng_qc_test.xml', '../data/QC/TREC/lemmaFormatTest')
-
-    outputBasicDependencyTriples('../exp/ch_qc_train.xml', '../exp/ch_qc_train_dep')
-    outputBasicDependencyTriples('../exp/ch_qc_test.xml', '../exp/ch_qc_test_dep')
-    outputBasicDependencyTriples('../exp/eng_qc_train.xml', '../exp/eng_qc_train_dep')
-    outputBasicDependencyTriples('../exp/eng_qc_test.xml', '../exp/eng_qc_test_dep')
 
 
 def word2phrase_sentencelevel(sentence, phrasemap):
@@ -516,42 +370,39 @@ def word2phrase_filelevel(formatCorpusFile, depFile, outputPhraseCorpusFile, out
         writer.writelines(newDepinfo)
 
 
-def preprocessTrans(transfile):
-    """
-    func: adding Chinese format question mark at the end
-    :param transfile: the translated file by Google translation
-    :return: n/a
-    """
-    with codecs.open(transfile, 'r', 'utf-8') as reader:
-        lines = reader.readlines()
-    qm = u'\uff1f'  # chinese question mark
-    for i, line in enumerate(lines):
-        lines[i] = line[:-2].replace(qm, '') + qm + '\n'
-    for i, line in enumerate(lines):
-        if line.strip()[-1] != qm:
-            lines[i] = line.strip()[:-1] + qm + '\n'
-    with codecs.open(transfile, 'w', 'utf-8') as writer:
-        writer.writelines(lines)
+def preprocess(corpusFile, lang):
+    base_dir = '/'.join(corpusFile.split('/')[:-1]) + '/'
+    fn = corpusFile.split('/')[-1]
+    coreNLPparser(corpusFile, lang, corpusFile + '.sent', base_dir)
+
+    if lang == 'ch':
+        coreNLPChineseSegment(corpusFile, corpusFile + '.seg', corpusFile + '.sent.xml')
+
+    outputBasicDependencyTriples(corpusFile + '.sent.xml', corpusFile + '.dep')
 
 
-def rundownOnTranslate():
-    runCoreNLP('../data/QC/translate/google_ch2eng_test', 'eng')
-    runCoreNLP('../data/QC/translate/google_eng2ch_train', 'ch')
-
-    coreNLPChineseSegment('../data/QC/TREC/trimengqctrain',
-                          '../data/QC/translate/final_google_eng2ch_train',
-                          '../exp/google_eng2ch_train.xml')
-    coreNLPChineseSegment('../data/QC/Chinese_qc/trimchqctest',
-                          '../data/QC/Chinese_qc/final_google_ch2eng_test',
-                          '../exp/google_ch2eng_test.xml')
-
-    outputBasicDependencyTriples('../exp/google_eng2ch_train.xml', '../exp/google_eng2ch_train_dep')
-    outputBasicDependencyTriples('../exp/google_ch2eng_test.xml', '../exp/google_ch2eng_test_dep')
+def rundown():
+    corpusFileList = [
+        # '../data/Semantic/eng_train',
+        '../data/Semantic/ch_test',
+        #       '../data/QC/TREC/trimengqctrain',
+        #       '../data/QC/Chinese_qc/finaltrain',
+        #       '../data/QC/translate/final_moses_eng2ch_train',
+        #       '../data/QC/Chinese_qc/finaltest'
+    ]
+    corpusLangList = ['ch']
+    for i, corpusfoo in enumerate(corpusFileList):
+        preprocess(corpusfoo, corpusLangList[i])
+        if corpusLangList[i] == 'eng':
+            word2phrase_filelevel(
+                corpusfoo,
+                corpusfoo + '.dep',
+                corpusfoo + '.phr',
+                corpusfoo + '.phr.dep'
+            )
 
 
 if __name__ == "__main__":
-    #rundownOnTranslate()
-    word2phrase_filelevel('../data/QC/TREC/trimengqctrain', '../exp/eng_qc_train_dep', '../data/QC/TREC/phraseengtrain',
-                          '../exp/phrase_eng_qc_train_dep')
+    rundown()
 
 

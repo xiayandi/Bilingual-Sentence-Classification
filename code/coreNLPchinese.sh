@@ -7,4 +7,4 @@ java -cp ../../bin/coreNLP/stanford-corenlp-3.5.2.jar\
 :../../bin/coreNLP/ejml-0.23.jar \
 -Xmx2g edu.stanford.nlp.pipeline.StanfordCoreNLP \
 -props ../../bin/coreNLP/chinese_properties -file $1 \
--outputDirectory ../exp
+-outputDirectory $2 \
