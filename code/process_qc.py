@@ -386,17 +386,31 @@ def datasetConstructRundown(eng_proportion, ch_proportion):
 
     #eng_train_file_base = '../data/QC/translate/final_moses_eng2ch_train'
 
-    eng_train_file_base = '../data/QC/TREC/trimengqctrain'
+    # eng_train_file_base = '../data/QC/TREC/trimengqctrain' # QC english train file
+    #ch_test_file_base = '../data/QC/Chinese_qc/finaltest' # QC Chinese test file
+
+    ###########################################
+    #           English Train files           #
+    ###########################################
+    eng_train_file_base = '../data/Semantic/eng_train'
     eng_train_file = eng_train_file_base + '.phr'  # '../data/QC/TREC/formatTrain'  # English training file original order
     eng_train_dep_file = eng_train_file_base + '.phr.dep'  # English dependency triple file
     eng_tree_based_train_file = '../exp/eng_train.dat'  # English dependency based training file
 
-    ch_train_file_base = '../data/QC/Chinese_qc/finaltrain'
-    ch_train_file = ch_train_file_base + '.seg'
-    ch_train_dep_file = ch_train_file_base + '.dep'
-    ch_tree_based_train_file = '../exp/ch_train.dat'
+    ###########################################
+    # Chinese Train files           #
+    ###########################################
+    hasChineseTrain = False
+    if hasChineseTrain:
+        ch_train_file_base = '../data/QC/Chinese_qc/finaltrain'
+        ch_train_file = ch_train_file_base + '.seg'
+        ch_train_dep_file = ch_train_file_base + '.dep'
+        ch_tree_based_train_file = '../exp/ch_train.dat'
 
-    ch_test_file_base = '../data/QC/Chinese_qc/finaltest'
+    ###########################################
+    # Chinese Test files            #
+    ###########################################
+    ch_test_file_base = '../data/Semantic/Douban/test.dat'
     ch_test_file = ch_test_file_base + '.seg'
     ch_test_dep_file = ch_test_file_base + '.dep'
     ch_tree_based_test_file = '../exp/test.dat'
@@ -417,15 +431,18 @@ def datasetConstructRundown(eng_proportion, ch_proportion):
         # reorder sentences
         ancestorNum = 4  # max window size is 4+1
         filter_h = ancestorNum + 1  # window size
+
         constructDependencyBasedData(ancestorNum, eng_train_file, eng_train_dep_file, eng_tree_based_train_file)
-        constructDependencyBasedData(ancestorNum, ch_train_file, ch_train_dep_file, ch_tree_based_train_file)
+        if hasChineseTrain:
+            constructDependencyBasedData(ancestorNum, ch_train_file, ch_train_dep_file, ch_tree_based_train_file)
         constructDependencyBasedData(ancestorNum, ch_test_file, ch_test_dep_file, ch_tree_based_test_file)
 
         # actual stage for constructing CNN data
         eng_train_part = construct_dataset(eng_tree_based_train_file, filter_h, max_l, lbl2idxmap, vocab_file,
                                            get_idx_from_dep_pattern)
-        ch_train_part = construct_dataset(ch_tree_based_train_file, filter_h, max_l, lbl2idxmap, vocab_file,
-                                         get_idx_from_dep_pattern)
+        if hasChineseTrain:
+            ch_train_part = construct_dataset(ch_tree_based_train_file, filter_h, max_l, lbl2idxmap, vocab_file,
+                                              get_idx_from_dep_pattern)
         ch_test_part = construct_dataset(ch_tree_based_test_file, filter_h, max_l, lbl2idxmap, vocab_file,
                                          get_idx_from_dep_pattern)
 
@@ -433,15 +450,20 @@ def datasetConstructRundown(eng_proportion, ch_proportion):
         filter_h = 3
         # actual stage for constructing CNN data
         eng_train_part = construct_dataset(eng_train_file, filter_h, max_l, lbl2idxmap, vocab_file, get_idx_from_sent)
-        ch_train_part = construct_dataset(ch_train_file, filter_h, max_l, lbl2idxmap, vocab_file, get_idx_from_sent)
+        if hasChineseTrain:
+            ch_train_part = construct_dataset(ch_train_file, filter_h, max_l, lbl2idxmap, vocab_file, get_idx_from_sent)
         ch_test_part = construct_dataset(ch_test_file, filter_h, max_l, lbl2idxmap, vocab_file, get_idx_from_sent)
 
     # mix eng and ch train
-    ch_proportion = ch_proportion
-    eng_proportion = eng_proportion
-    permute(ch_train_part)
-    train_part = mixCorpus(eng_train_part, ch_train_part, eng_proportion, ch_proportion)
-    test_part = ch_test_part
+    if hasChineseTrain:
+        ch_proportion = ch_proportion
+        eng_proportion = eng_proportion
+        permute(ch_train_part)
+        train_part = mixCorpus(eng_train_part, ch_train_part, eng_proportion, ch_proportion)
+        test_part = ch_test_part
+    else:
+        train_part = eng_train_part
+        test_part = ch_test_part
 
     dataset = convertNumpy([train_part, test_part])
     # uncomment next line if you have valid set

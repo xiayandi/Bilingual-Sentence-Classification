@@ -145,6 +145,7 @@ def coreNLPChineseSegment(formattedfile, segfile, coreNLPresultFile):
         with codecs.open('../exp/2222.txt', 'w', 'utf8') as writer:
             for sent in queris:
                 writer.write(sent + '\n')
+        print 'wrong sentence number error: coreNLPChineseSegment()'
         sys.exit()
 
     seginstlines = []
@@ -384,7 +385,7 @@ def preprocess(corpusFile, lang):
 def rundown():
     corpusFileList = [
         # '../data/Semantic/eng_train',
-        '../data/Semantic/ch_test',
+        '../data/Semantic/movieReview/trans_imdb/moses_trans_mr_eng2ch_train',
         #       '../data/QC/TREC/trimengqctrain',
         #       '../data/QC/Chinese_qc/finaltrain',
         #       '../data/QC/translate/final_moses_eng2ch_train',

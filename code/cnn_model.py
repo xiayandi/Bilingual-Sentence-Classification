@@ -324,16 +324,21 @@ def rundown():
     dataFile = '../exp/dataset_bi.pkl'
     labelStructureFile = '../exp/label_struct_bi'
     cfswitch = 'c'
-    filter_hs = [1, 3]  # , 4]#, 5]
+
     n_epochs = 100
-    # batch_size = 170
-    #   feature_maps = 100  # 150
-    #   mlphiddensize = 60
-    batch_size = 120
-    feature_maps = 110
-    mlphiddensize = 20
-    logFile = '../exp/logprint'
-    logTest = '../exp/logTest'
+
+    ###### QC parameter #######
+    # filter_hs = [1, 3]  # , 4]#, 5]
+    #batch_size = 120
+    #feature_maps = 110
+    #mlphiddensize = 20
+
+    ###### movie review parameter ######
+    filter_hs = [1, 3, 4, 5]
+    batch_size = 170
+    feature_maps = 100  # 150
+    mlphiddensize = 60
+
     process_qc.datasetConstructRundown(10, 0)
 
     acc = train_joint_conv_net(
