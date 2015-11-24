@@ -7,8 +7,6 @@ from util import readInDependencyTriples, getTreeStructure, getAncestors
 import buildBilingualDict
 
 
-
-
 def get_chinese_raw_sentences_labels(datafile):
     """
     function: read in the datafile, and separate it into sentences,
