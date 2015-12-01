@@ -339,7 +339,7 @@ def rundown():
     feature_maps = 100  # 150
     mlphiddensize = 60
 
-    process_qc.datasetConstructRundown(10, 0)
+    # process_qc.datasetConstructRundown(10, 0)
 
     acc = train_joint_conv_net(
         w2vFile=w2vFile,

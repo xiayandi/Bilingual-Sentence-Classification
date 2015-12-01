@@ -99,19 +99,11 @@ def findUnkownWords(vocablist, w2vfile):
 
 def rundown():
     allw2v = '../data/blg250_all_phrase.txt'
-    # allw2v = '../data/ch_250.txt'
     trimmedw2v = '../exp/blg250.pkl'
-    ##engtrainFile = '../data/QC/TREC/phraseengtrain'
-    ##engtrainFile = '../data/Semantic/movieReview/trans_imdb/moses_trans_mr_eng2ch_train'
-    engtrainFile = '../data/Semantic/movieReview/imdb/eng_train'
-    engtestFile = '../data/Semantic/movieReview/imdb/eng_train.phr'
-    ##engtestFile = '../data/QC/TREC/trimengqctest'
-    ##chtrainFile = '../data/Semantic/movieReview/Douban/test.dat'
-    chtestFile = '../data/Semantic/movieReview/Douban/test.dat.seg'
-    ##filelist = [engtrainFile, engtestFile, chtestFile, chtrainFile]
-    filelist = [engtrainFile, engtestFile, chtestFile]
-    ##encodings = [None, None, 'utf-8', 'utf-8']
-    encodings = ['utf-8', 'utf-8', 'utf-8']
+    engtrainFile = '../data/Semantic/productReview/train.dat'
+    chtestFile = '../data/Semantic/productReview/test.dat.seg'
+    filelist = [engtrainFile, chtestFile]
+    encodings = ['utf-8', 'utf-8']
     vocabFile = '../exp/vocab_bi.lst'
     outputAllVocabList(filelist, encodings, vocabFile)
     construct_w2v(250, vocabFile, allw2v, trimmedw2v)
@@ -120,11 +112,9 @@ def rundown():
 def rundown_chinese():
     allw2v = '../data/ch_250.txt'
     trimmedw2v = '../exp/ch250.pkl'
-    chtrainFile = '../data/Semantic/movieReview/trans_imdb/moses_trans_mr_eng2ch_train'
-    chtestFile = '../data/Semantic/movieReview/Douban/test.dat.seg'
-    ##filelist = [engtrainFile, engtestFile, chtestFile, chtrainFile]
+    chtrainFile = '../data/Semantic/productReview/train.dat'
+    chtestFile = '../data/Semantic/productReview/test.dat.seg'
     filelist = [chtrainFile, chtestFile]
-    ##encodings = [None, None, 'utf-8', 'utf-8']
     encodings = ['utf-8', 'utf-8']
     vocabFile = '../exp/vocab_bi.lst'
     outputAllVocabList(filelist, encodings, vocabFile)

@@ -392,22 +392,22 @@ def datasetConstructRundown(eng_proportion, ch_proportion):
     ###########################################
     #           English Train files           #
     ###########################################
-    # eng_train_file_base = '../data/Semantic/movieReview/imdb/eng_train'
-    #eng_train_file = eng_train_file_base + '.phr'  # '../data/QC/TREC/formatTrain'  # English training file original order
-    #eng_train_dep_file = eng_train_file_base + '.phr.dep'  # English dependency triple file
-    #eng_tree_based_train_file = '../exp/eng_train.dat'  # English dependency based training file
-
-    eng_train_file_base = '../data/Semantic/movieReview/trans_imdb/moses_trans_mr_eng2ch_train'
-    eng_train_file = eng_train_file_base + '.seg'  # '../data/QC/TREC/formatTrain'  # English training file original order
-    eng_train_dep_file = eng_train_file_base + '.dep'  # English dependency triple file
+    eng_train_file_base = '../data/Semantic/productReview/train.dat'
+    eng_train_file = eng_train_file_base + '.phr'  # '../data/QC/TREC/formatTrain'  # English training file original order
+    eng_train_dep_file = eng_train_file_base + '.phr.dep'  # English dependency triple file
     eng_tree_based_train_file = '../exp/eng_train.dat'  # English dependency based training file
+
+    # eng_train_file_base = '../data/QC/TREC/formatTrain'
+    #eng_train_file = eng_train_file_base + '.seg'  # '../data/QC/TREC/formatTrain'  # English training file original order
+    #eng_train_dep_file = eng_train_file_base + '.dep'  # English dependency triple file
+    #eng_tree_based_train_file = '../exp/eng_train.dat'  # English dependency based training file
 
     ###########################################
     # Chinese Train files           #
     ###########################################
     hasChineseTrain = False
     if hasChineseTrain:
-        ch_train_file_base = '../data/QC/Chinese_qc/finaltrain'
+        ch_train_file_base = '../data/QC/TREC/formatTrain'
         ch_train_file = ch_train_file_base + '.seg'
         ch_train_dep_file = ch_train_file_base + '.dep'
         ch_tree_based_train_file = '../exp/ch_train.dat'
@@ -415,7 +415,7 @@ def datasetConstructRundown(eng_proportion, ch_proportion):
     ###########################################
     # Chinese Test files            #
     ###########################################
-    ch_test_file_base = '../data/Semantic/movieReview/Douban/test.dat'
+    ch_test_file_base = '../data/Semantic/productReview/test.dat'
     ch_test_file = ch_test_file_base + '.seg'
     ch_test_dep_file = ch_test_file_base + '.dep'
     ch_tree_based_test_file = '../exp/test.dat'
