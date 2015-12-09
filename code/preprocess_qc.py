@@ -383,7 +383,7 @@ def preprocess(corpusFile, lang):
 def rundown():
     corpusFileList = [
         # '../data/Semantic/eng_train',
-        '../data/Semantic/movieReview/trans_imdb/moses_trans_mr_eng2ch_train',
+        #'../data/Semantic/movieReview/trans_imdb/moses_trans_mr_eng2ch_train',
         #       '../data/QC/TREC/trimengqctrain',
         #       '../data/QC/Chinese_qc/finaltrain',
         #       '../data/QC/translate/final_moses_eng2ch_train',
@@ -402,6 +402,13 @@ def rundown():
 
 
 if __name__ == "__main__":
-    rundown()
+    #rundown()
+    base = '../data/Event/English/train.dat'
+    word2phrase_filelevel(
+        base,
+        base + '.dep',
+        base+'.phr',
+        base+'.phr.dep'
+    )
 
 
