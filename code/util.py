@@ -33,7 +33,7 @@ def readInDependencyTriples(depTripleFile):
     with open(depTripleFile, 'r') as reader:
         triplelines = reader.readlines()
     sentences_triples = []
-    for line in triplelines:
+    for i, line in enumerate(triplelines):
         triples = []
         str_triples = line.rstrip().split('@')
         for str_triple in str_triples:
@@ -42,6 +42,7 @@ def readInDependencyTriples(depTripleFile):
             except ValueError:
                 print str_triple
                 print depTripleFile
+                print i
                 sys.exit()
             triples.append((int(g), t, int(d)))
         sentences_triples.append(triples)
