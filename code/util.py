@@ -41,6 +41,7 @@ def readInDependencyTriples(depTripleFile):
                 g, t, d = str_triple.strip('()').split(',')  # g:governor, t:type, d:dependent
             except ValueError:
                 print str_triple
+                print depTripleFile
                 sys.exit()
             triples.append((int(g), t, int(d)))
         sentences_triples.append(triples)
