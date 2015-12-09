@@ -100,8 +100,8 @@ def findUnkownWords(vocablist, w2vfile):
 def rundown():
     allw2v = '../data/blg250_all_phrase.txt'
     trimmedw2v = '../exp/blg250.pkl'
-    engtrainFile = '../data/Semantic/productReview/train.dat'
-    chtestFile = '../data/Semantic/productReview/test.dat.seg'
+    engtrainFile = '../data/Event/English/train.dat'
+    chtestFile = '../data/Event/Chinese/test.dat.seg'
     filelist = [engtrainFile, chtestFile]
     encodings = ['utf-8', 'utf-8']
     vocabFile = '../exp/vocab_bi.lst'
