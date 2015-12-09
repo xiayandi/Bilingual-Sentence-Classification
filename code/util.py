@@ -4,6 +4,8 @@ __author__ = 'yandixia'
 This is the util module for some basic operations
 """
 
+import sys
+
 
 def insertDict(key, dictionary):
     """
@@ -35,7 +37,11 @@ def readInDependencyTriples(depTripleFile):
         triples = []
         str_triples = line.rstrip().split('@')
         for str_triple in str_triples:
-            g, t, d = str_triple.strip('()').split(',')  # g:governor, t:type, d:dependent
+            try:
+                g, t, d = str_triple.strip('()').split(',')  # g:governor, t:type, d:dependent
+            except ValueError:
+                print str_triple
+                sys.exit()
             triples.append((int(g), t, int(d)))
         sentences_triples.append(triples)
     return sentences_triples
