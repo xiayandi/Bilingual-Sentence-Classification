@@ -402,6 +402,13 @@ def rundown():
 
 
 if __name__ == "__main__":
-    rundown()
+    #rundown()
+    corpusfoo = '../data/Event/English/train.dat'
+    word2phrase_filelevel(
+        corpusfoo,
+        corpusfoo + '.dep',
+        corpusfoo + '.phr',
+        corpusfoo + '.phr.dep'
+    )
 
 
