@@ -101,7 +101,7 @@ def rundown():
     allw2v = '../data/blg250_all_phrase.txt'
     trimmedw2v = '../exp/blg250.pkl'
     engtrainFile = '../data/Event/English/train.dat'
-    chtestFile = '../data/Event/Chinese/test.dat.seg'
+    chtestFile = '../data/Event/Chinese/sub_test.dat.seg'
     filelist = [engtrainFile, chtestFile]
     encodings = ['utf-8', 'utf-8']
     vocabFile = '../exp/vocab_bi.lst'
