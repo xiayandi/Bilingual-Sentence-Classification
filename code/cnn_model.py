@@ -98,10 +98,11 @@ def train_joint_conv_net(
     clbl_vec, flbl_vec = process_qc.label_structure(labelStructureFile)
     trainDataSetIndex = 0
     testDataSetIndex = 1
+    validDataSetIndex = 2
+    hasValidDataSet = True
     sentenceIndex = 0
     clblIndex = 1  # coarse label(clbl) index in the dataset structure
     flblIndex = 2  # fine label(flbl) index
-    maskIndex = 3  # a mask matrix representing the length of the sentences, detail in process_data.py
 
     if cfswitch == 'c':
         lblIndex = clblIndex
@@ -122,6 +123,10 @@ def train_joint_conv_net(
     # test part
     gold_test_y = datasets[testDataSetIndex][lblIndex]
     test_x = shared_store(datasets[testDataSetIndex][sentenceIndex])
+
+    # valid part
+    gold_valid_y = datasets[validDataSetIndex][lblIndex]
+    valid_x = shared_store(datasets[validDataSetIndex][sentenceIndex])
 
     w2v = load(w2vFile)
     img_w = w2v.shape[1]  # the dimension of the word embedding
@@ -216,11 +221,21 @@ def train_joint_conv_net(
         )
     test_prediction = classifier.predict(T.concatenate(test_conv_layer_outputs, 1))
 
+    # test on test set
     test_model = theano.function(
         inputs=[],
         outputs=test_prediction,
         givens={
             x: test_x,
+        }
+    )
+
+    # test on valid set
+    valid_model = theano.function(
+        inputs=[],
+        outputs=test_prediction,
+        givens={
+            x: valid_x,
         }
     )
 

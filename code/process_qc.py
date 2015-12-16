@@ -420,6 +420,15 @@ def datasetConstructRundown(eng_proportion, ch_proportion):
     ch_test_dep_file = ch_test_file_base + '.dep'
     ch_tree_based_test_file = '../exp/test.dat'
 
+
+    ###########################################
+    # Chinese valid files                     #
+    ###########################################
+    ch_valid_file_base = '../data/Event/Chinese/sub_test.dat'
+    ch_valid_file = ch_test_file_base + '.seg'
+    ch_valid_dep_file = ch_test_file_base + '.dep'
+    ch_tree_based_valid_file = '../exp/valid.dat'
+
     label_struct_file = '../exp/label_struct_bi'
     vocab_file = '../exp/vocab_bi.lst'
     outputDataFile = '../exp/dataset_bi.pkl'
@@ -441,6 +450,7 @@ def datasetConstructRundown(eng_proportion, ch_proportion):
         if hasChineseTrain:
             constructDependencyBasedData(ancestorNum, ch_train_file, ch_train_dep_file, ch_tree_based_train_file)
         constructDependencyBasedData(ancestorNum, ch_test_file, ch_test_dep_file, ch_tree_based_test_file)
+        constructDependencyBasedData(ancestorNum, ch_valid_file, ch_valid_dep_file, ch_tree_based_valid_file)
 
         # actual stage for constructing CNN data
         eng_train_part = construct_dataset(eng_tree_based_train_file, filter_h, max_l, lbl2idxmap, vocab_file,
@@ -450,7 +460,8 @@ def datasetConstructRundown(eng_proportion, ch_proportion):
                                               get_idx_from_dep_pattern)
         ch_test_part = construct_dataset(ch_tree_based_test_file, filter_h, max_l, lbl2idxmap, vocab_file,
                                          get_idx_from_dep_pattern)
-
+        ch_valid_part = construct_dataset(ch_tree_based_valid_file, filter_h, max_l, lbl2idxmap, vocab_file,
+                                         get_idx_from_dep_pattern)
     else:
         filter_h = 3
         # actual stage for constructing CNN data
@@ -458,6 +469,7 @@ def datasetConstructRundown(eng_proportion, ch_proportion):
         if hasChineseTrain:
             ch_train_part = construct_dataset(ch_train_file, filter_h, max_l, lbl2idxmap, vocab_file, get_idx_from_sent)
         ch_test_part = construct_dataset(ch_test_file, filter_h, max_l, lbl2idxmap, vocab_file, get_idx_from_sent)
+        ch_valid_part = construct_dataset(ch_valid_file, filter_h, max_l, lbl2idxmap, vocab_file, get_idx_from_sent)
 
     # mix eng and ch train
     if hasChineseTrain:
@@ -469,8 +481,9 @@ def datasetConstructRundown(eng_proportion, ch_proportion):
     else:
         train_part = eng_train_part
         test_part = ch_test_part
+        valid_part = ch_valid_part
 
-    dataset = convertNumpy([train_part, test_part])
+    dataset = convertNumpy([train_part, test_part, valid_part])
     # uncomment next line if you have valid set
     # dataset = [train_part, test_part, valid_part]
 
@@ -479,7 +492,7 @@ def datasetConstructRundown(eng_proportion, ch_proportion):
     print 'max length is: ' + str(dataset[0][0].shape[1])
     print 'training set size: ' + str(dataset[0][0].shape)
     print 'test set size: ' + str(dataset[1][0].shape)
-    construct_additional_features(eng_train_file, ch_test_file)
+    #construct_additional_features(eng_train_file, ch_test_file)
 
     dataset_output = open(outputDataFile, 'wb')
     cPickle.dump(dataset, dataset_output, -1)
