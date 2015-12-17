@@ -349,16 +349,16 @@ def rundown():
     n_epochs = 100
 
     ###### QC parameter #######
-    # filter_hs = [1, 3]  # , 4]#, 5]
-    #batch_size = 120
-    #feature_maps = 110
-    #mlphiddensize = 20
+    filter_hs = [1, 3]  # , 4]#, 5]
+    batch_size = 120
+    feature_maps = 110
+    mlphiddensize = 20
 
     ###### movie review parameter ######
-    filter_hs = [1, 3, 4, 5]
-    batch_size = 170
-    feature_maps = 100  # 150
-    mlphiddensize = 60
+    #filter_hs = [1, 3, 4, 5]
+    #batch_size = 170
+    #feature_maps = 100  # 150
+    #mlphiddensize = 60
 
     # process_qc.datasetConstructRundown(10, 0)
 
