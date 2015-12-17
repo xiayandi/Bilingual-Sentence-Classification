@@ -5,6 +5,8 @@ This is the util module for some basic operations
 """
 
 import sys
+import numpy as np
+import codecs
 
 
 def insertDict(key, dictionary):
@@ -122,4 +124,56 @@ def myGetAncestors(idx, level, d2g):
             else:
                 return [g] + ga
     return None
+
+
+def splitValidOut(foo, valid_size):
+    files = [foo, foo+'.seg', foo+'.dep']
+    fbase = '/'.join(foo.split('/')[:-1])+'/'
+    fn = foo.split('/')[-1]
+    validoutfoo = fbase+'validset'
+    newoutfoo = foo+'.new'
+    with codecs.open(foo, 'r', 'utf8') as reader:
+        foolines = reader.readlines()
+    with codecs.open(foo+'.seg', 'r', 'utf8') as reader:
+        seglines = reader.readlines()
+    with codecs.open(foo+'.dep', 'r', 'utf8') as reader:
+        deplines = reader.readlines()
+
+    assert len(foolines) == len(seglines) == len(deplines)
+
+    rng = np.random.RandomState(1234)
+    permu = rng.permutation(len(foolines))
+
+    validlines = []
+    validseglines = []
+    validdeplines = []
+    for index in permu[:valid_size]:
+        validlines.append(foolines[index])
+        validseglines.append(seglines[index])
+        validdeplines.append(deplines[index])
+    with codecs.open(validoutfoo, 'w', 'utf8') as writer:
+        writer.writelines(validlines)
+    with codecs.open(validoutfoo+'.seg', 'w', 'utf8') as writer:
+        writer.writelines(validseglines)
+    with codecs.open(validoutfoo+'.dep', 'w', 'utf8') as writer:
+        writer.writelines(validdeplines)
+
+    newfoolines = []
+    newseglines = []
+    newdeplines = []
+    for index in permu[valid_size:]:
+        newfoolines.append(foolines[index])
+        newseglines.append(seglines[index])
+        newdeplines.append(deplines[index])
+    with codecs.open(newoutfoo, 'w', 'utf8') as writer:
+        writer.writelines(newfoolines)
+    with codecs.open(newoutfoo+'.seg', 'w', 'utf8') as writer:
+        writer.writelines(newseglines)
+    with codecs.open(newoutfoo+'.dep', 'w', 'utf8') as writer:
+        writer.writelines(newdeplines)
+
+
+
+
+
 
