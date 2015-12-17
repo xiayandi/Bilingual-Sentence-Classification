@@ -107,8 +107,8 @@ def rundown(allw2v, files, encodings):
 
 
 if __name__ == '__main__':
-    allw2v = '../data/blg250.txt' # bilingual embedding
-    #allw2v = '../data/blg250_all_phrase.txt' # phrase based bilingual embedding
+    #allw2v = '../data/blg250.txt' # bilingual embedding
+    allw2v = '../data/blg250_all_phrase.txt' # phrase based bilingual embedding
     #allw2v = '../data/ch_250.txt' # chinese embedding
     files = ['../data/QC/TREC/trimengqctrain', '../data/QC/Chinese_qc/finaltest.seg'] # TREC data
     #files = ['/data/Semantic/movieReview/imdb/eng_train', '/data/Semantic/movieReview/Douban/test.dat.seg'] # MR data

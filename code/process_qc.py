@@ -430,9 +430,9 @@ def datasetConstructRundown(eng_proportion, ch_proportion):
     ###########################################
     # Chinese valid files                     #
     ###########################################
-    ch_valid_file_base = '../data/Event/Chinese/sub_test.dat'
-    ch_valid_file = ch_test_file_base + '.seg'
-    ch_valid_dep_file = ch_test_file_base + '.dep'
+    ch_valid_file_base = '../data/QC/Chinese_qc/finaltest'
+    ch_valid_file = ch_valid_file_base + '.seg'
+    ch_valid_dep_file = ch_valid_file_base + '.dep'
     ch_tree_based_valid_file = '../exp/valid.dat'
 
     label_struct_file = '../exp/label_struct_bi'
@@ -484,6 +484,7 @@ def datasetConstructRundown(eng_proportion, ch_proportion):
         permute(ch_train_part)
         train_part = mixCorpus(eng_train_part, ch_train_part, eng_proportion, ch_proportion)
         test_part = ch_test_part
+        valid_part = ch_valid_part
     else:
         train_part = eng_train_part
         test_part = ch_test_part
@@ -498,7 +499,7 @@ def datasetConstructRundown(eng_proportion, ch_proportion):
     print 'max length is: ' + str(dataset[0][0].shape[1])
     print 'training set size: ' + str(dataset[0][0].shape)
     print 'test set size: ' + str(dataset[1][0].shape)
-    construct_additional_features(eng_train_file, ch_test_file)
+    #construct_additional_features(eng_train_file, ch_test_file)
 
     dataset_output = open(outputDataFile, 'wb')
     cPickle.dump(dataset, dataset_output, -1)
