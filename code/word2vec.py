@@ -110,7 +110,7 @@ if __name__ == '__main__':
     #allw2v = '../data/blg250.txt' # bilingual embedding
     allw2v = '../data/blg250_all_phrase.txt' # phrase based bilingual embedding
     #allw2v = '../data/ch_250.txt' # chinese embedding
-    files = ['../data/QC/TREC/trimengqctrain', '../data/QC/Chinese_qc/finaltest.seg'] # TREC data
+    files = ['../data/QC/TREC/trimengqctrain.phr', '../data/QC/Chinese_qc/finaltest.seg'] # TREC data
     #files = ['/data/Semantic/movieReview/imdb/eng_train', '/data/Semantic/movieReview/Douban/test.dat.seg'] # MR data
     #files = ['../data/Semantic/productReview/train.dat', '../data/Semantic/productReview/test.dat.seg'] # PR data
     #files = ['../data/Event/English/train.dat', '../data/Event/Chinese/sub_test.dat.seg'] # event data
