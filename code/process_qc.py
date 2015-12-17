@@ -498,7 +498,7 @@ def datasetConstructRundown(eng_proportion, ch_proportion):
     print 'max length is: ' + str(dataset[0][0].shape[1])
     print 'training set size: ' + str(dataset[0][0].shape)
     print 'test set size: ' + str(dataset[1][0].shape)
-    #construct_additional_features(eng_train_file, ch_test_file)
+    construct_additional_features(eng_train_file, ch_test_file)
 
     dataset_output = open(outputDataFile, 'wb')
     cPickle.dump(dataset, dataset_output, -1)
