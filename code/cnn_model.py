@@ -99,7 +99,6 @@ def train_joint_conv_net(
     trainDataSetIndex = 0
     testDataSetIndex = 1
     validDataSetIndex = 2
-    hasValidDataSet = True
     sentenceIndex = 0
     clblIndex = 1  # coarse label(clbl) index in the dataset structure
     flblIndex = 2  # fine label(flbl) index
