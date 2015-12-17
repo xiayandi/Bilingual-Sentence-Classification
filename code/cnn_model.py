@@ -278,7 +278,8 @@ def train_joint_conv_net(
                     for lblidx in test_y_preds:
                         writer.write(str(lblidx) + '\n')
 
-        print 'accuracy is: ' + str(test_acc)
+        print 'test accuracy is: ' + str(test_acc)
+        print 'valid accuracy is: ' + str(valid_acc)
         print 'current best valid prediction accuracy is: ' + str(best_valid_acc) + ' at epoch ' + str(best_valid_ep)
         print 'current best test prediction accuracy is: ' + str(best_test_acc) + ' at epoch ' + str(best_test_ep)
 
@@ -340,7 +341,45 @@ def as_floatX(variable):
     return theano.tensor.cast(variable, theano.config.floatX)
 
 
-def rundown():
+###############################################################################################
+###############################################################################################
+###############################################################################################
+#####                              Experiment Section                                     #####
+###############################################################################################
+###############################################################################################
+###############################################################################################
+
+
+def rundown_qc():
+    w2vFile = '../exp/blg250.pkl'
+    dataFile = '../exp/dataset_bi.pkl'
+    labelStructureFile = '../exp/label_struct_bi'
+    cfswitch = 'c'
+
+    n_epochs = 100
+
+    ###### QC parameter #######
+    filter_hs = [1, 3]  # , 4]#, 5]
+    batch_size = 120
+    feature_maps = 110
+    mlphiddensize = 20
+
+    # process_qc.datasetConstructRundown(10, 0)
+
+    acc = train_joint_conv_net(
+        w2vFile=w2vFile,
+        dataFile=dataFile,
+        labelStructureFile=labelStructureFile,
+        cfswitch=cfswitch,
+        filter_hs=filter_hs,
+        n_epochs=n_epochs,
+        batch_size=batch_size,
+        feature_maps=feature_maps,
+        mlphiddensize=mlphiddensize,
+    )
+
+
+def rundown_mr():
     w2vFile = '../exp/blg250.pkl'
     dataFile = '../exp/dataset_bi.pkl'
     labelStructureFile = '../exp/label_struct_bi'
@@ -355,7 +394,7 @@ def rundown():
     mlphiddensize = 20
 
     ###### movie review parameter ######
-    #filter_hs = [1, 3, 4, 5]
+    # filter_hs = [1, 3, 4, 5]
     #batch_size = 170
     #feature_maps = 100  # 150
     #mlphiddensize = 60
@@ -414,9 +453,9 @@ def structureSelection():
     labelStructureFile = '../exp/label_struct_bi'
     cfswitch = 'c'
     filter_hs = [1, 3]  # , 4]#, 5]
-    n_epochs = 30
+    n_epochs = 10
     batch_sizes = [100, 120, 140, 160, 170, 180, 200, 220, 240]
-    feature_mapss = [50, 70, 90, 100, 110, 130, 150]  # 150
+    feature_mapss = [50, 70, 90, 100, 110, 130, 150]
     mlphiddensizes = [20, 40, 50, 60, 70, 90, 110]
     logFile = '../exp/selectionlog'
     open(logFile, 'w').close()
@@ -451,4 +490,4 @@ def structureSelection():
 
 
 if __name__ == '__main__':
-    rundown()
+    structureSelection()

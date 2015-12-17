@@ -5,7 +5,7 @@ import os
 import xml.etree.ElementTree as ET
 from util import readInDependencyTriples, getTreeStructure, getAncestors
 import buildBilingualDict
-
+import numpy as np
 
 def get_chinese_raw_sentences_labels(datafile):
     """
@@ -378,6 +378,64 @@ def preprocess(corpusFile, lang):
         coreNLPChineseSegment(corpusFile, corpusFile + '.seg', corpusFile + '.sent.xml')
 
     outputBasicDependencyTriples(corpusFile + '.sent.xml', corpusFile + '.dep')
+    outputCollapsedDependencyTriples(corpusFile + '.sent.xml', corpusFile + '.cdep')
+
+
+def splitValidOut(foo, valid_size):
+    files = [foo, foo + '.seg', foo + '.dep']
+    fbase = '/'.join(foo.split('/')[:-1]) + '/'
+    fn = foo.split('/')[-1]
+    validoutfoo = fbase + 'validset'
+    newoutfoo = foo + '.new'
+    with codecs.open(foo, 'r', 'utf8') as reader:
+        foolines = reader.readlines()
+    with codecs.open(foo + '.seg', 'r', 'utf8') as reader:
+        seglines = reader.readlines()
+    with codecs.open(foo + '.dep', 'r', 'utf8') as reader:
+        deplines = reader.readlines()
+    with codecs.open(foo + '.cdep', 'r', 'utf8') as reader:
+        cdeplines = reader.readlines()
+
+    assert len(foolines) == len(seglines) == len(deplines)
+
+    rng = np.random.RandomState(1234)
+    permu = rng.permutation(len(foolines))
+
+    validlines = []
+    validseglines = []
+    validdeplines = []
+    validcdeplines = []
+    for index in permu[:valid_size]:
+        validlines.append(foolines[index])
+        validseglines.append(seglines[index])
+        validdeplines.append(deplines[index])
+        validcdeplines.append(cdeplines[index])
+    with codecs.open(validoutfoo, 'w', 'utf8') as writer:
+        writer.writelines(validlines)
+    with codecs.open(validoutfoo + '.seg', 'w', 'utf8') as writer:
+        writer.writelines(validseglines)
+    with codecs.open(validoutfoo + '.dep', 'w', 'utf8') as writer:
+        writer.writelines(validdeplines)
+    with codecs.open(validoutfoo + '.cdep', 'w', 'utf8') as writer:
+        writer.writelines(validcdeplines)
+
+    newfoolines = []
+    newseglines = []
+    newdeplines = []
+    newcdeplines = []
+    for index in permu[valid_size:]:
+        newfoolines.append(foolines[index])
+        newseglines.append(seglines[index])
+        newdeplines.append(deplines[index])
+        newcdeplines.append(cdeplines[index])
+    with codecs.open(newoutfoo, 'w', 'utf8') as writer:
+        writer.writelines(newfoolines)
+    with codecs.open(newoutfoo + '.seg', 'w', 'utf8') as writer:
+        writer.writelines(newseglines)
+    with codecs.open(newoutfoo + '.dep', 'w', 'utf8') as writer:
+        writer.writelines(newdeplines)
+    with codecs.open(newoutfoo + '.cdep', 'w', 'utf8') as writer:
+        writer.writelines(newcdeplines)
 
 
 def rundown():
@@ -401,8 +459,7 @@ def rundown():
             )
 
 
-if __name__ == "__main__":
-    #rundown()
+def rundown_for_event():
     corpusfoo = '../data/Event/English/sub_train.dat'
     word2phrase_filelevel(
         corpusfoo,
@@ -410,5 +467,24 @@ if __name__ == "__main__":
         corpusfoo + '.phr',
         corpusfoo + '.phr.dep'
     )
+
+
+
+if __name__ == "__main__":
+    #rundown()
+    corpusfoo = '../data/QC/Chinese_qc/finaltrain'
+    split = True
+    lang = 'ch'
+    outputCollapsedDependencyTriples(corpusfoo + '.sent.xml', corpusfoo + '.cdep')
+    if lang == 'eng':
+        word2phrase_filelevel(
+            corpusfoo,
+            corpusfoo + '.cdep',
+            corpusfoo + '.phr',
+            corpusfoo + '.phr.cdep'
+        )
+    if split:
+        valid_size = 859
+        splitValidOut(corpusfoo, valid_size)
 
 
