@@ -243,8 +243,10 @@ def train_joint_conv_net(
     Training part
     """
     print 'training....'
-    bestep = 0
-    bestacc = 0.
+    best_valid_ep = 0
+    best_valid_acc = 0.
+    best_test_ep = 0
+    best_test_acc = 0.
     epoch = 0
 
     # create gold value sequences, required by the eval.py
@@ -263,20 +265,25 @@ def train_joint_conv_net(
             train_cost = train_model(random_indexes)
 
         test_y_preds = test_model()
+        valid_y_preds = valid_model()
         test_acc = eval.accuracy(gold_test_y, test_y_preds)
-        if test_acc > bestacc:
-            bestacc = test_acc
-            bestep = epoch
-            print test_y_preds.shape
-            # output predictions
-            with open('../exp/predictions', 'w') as writer:
-                for lblidx in test_y_preds:
-                    writer.write(str(lblidx) + '\n')
+        valid_acc = eval.accuracy(gold_valid_y, valid_y_preds)
+        if valid_acc > best_valid_acc:
+            best_valid_acc = valid_acc
+            best_valid_ep = epoch
+            if test_acc > best_test_acc:
+                best_test_acc = test_acc
+                best_test_ep = epoch
+                # output predictions
+                with open('../exp/predictions', 'w') as writer:
+                    for lblidx in test_y_preds:
+                        writer.write(str(lblidx) + '\n')
 
         print 'accuracy is: ' + str(test_acc)
-        print 'current best prediction accuracy is: ' + str(bestacc) + ' at epoch ' + str(bestep)
+        print 'current best valid prediction accuracy is: ' + str(best_valid_acc) + ' at epoch ' + str(best_valid_ep)
+        print 'current best test prediction accuracy is: ' + str(best_test_acc) + ' at epoch ' + str(best_test_ep)
 
-    return bestacc
+    return best_test_acc
 
 
 def logging(acc_c, acc_f, epoch, logfile):
