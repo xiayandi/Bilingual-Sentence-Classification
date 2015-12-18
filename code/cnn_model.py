@@ -486,16 +486,16 @@ def exprun():
     print accs
 
 
-def structureSelection():
+def structureSelection(filter_hs, logFile):
     w2vFile = '../exp/blg250.pkl'
     dataFile = '../exp/dataset_bi.pkl'
     labelStructureFile = '../exp/label_struct_bi'
     cfswitch = 'c'
-    filter_hs = [3]  # [1, 3] # , 4]#, 5]
+    #filter_hs = [1, 3]  # [1, 3] # , 4]#, 5]
     n_epochs = 10
     batch_sizes = [100, 120, 140, 160, 170, 180, 200, 220, 240]
     feature_mapss = [50, 70, 90, 100, 110, 130, 150]
-    logFile = '../exp/selectionlog'
+    #logFile = '../exp/selectionlog'
     open(logFile, 'w').close()
     best_acc = 0.0
     best_batch_size = 0
@@ -523,5 +523,13 @@ def structureSelection():
                             best_fm) + '\n')
 
 
+def script():
+    filter_hss = [[1, 3], [1, 3, 4], [1, 3, 4, 5], [3, 4, 5]]
+    for i in xrange(len(filter_hss))
+        filter_hs = filter_hss[i]
+        logfile = '../exp/selectionlog_'+str(i)
+        structureSelection(filter_hs, logfile)
+
+
 if __name__ == '__main__':
-    structureSelection()
+    script()
