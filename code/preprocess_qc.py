@@ -472,19 +472,27 @@ def rundown_for_event():
 
 if __name__ == "__main__":
     #rundown()
-    corpusfoo = '../data/QC/Chinese_qc/finaltrain'
-    split = True
-    lang = 'ch'
-    outputCollapsedDependencyTriples(corpusfoo + '.sent.xml', corpusfoo + '.cdep')
-    if lang == 'eng':
-        word2phrase_filelevel(
-            corpusfoo,
-            corpusfoo + '.cdep',
-            corpusfoo + '.phr',
-            corpusfoo + '.phr.cdep'
-        )
-    if split:
-        valid_size = 859
-        splitValidOut(corpusfoo, valid_size)
+    corpusfoos = [
+        '../data/Semantic/movieReview/Douban/test.dat',
+        '../data/Semantic/movieReview/imdb/eng_train'
+    ]
+    splits = [True, False]
+    langs = ['ch', 'eng']
+
+    for i in xrange(len(corpusfoos)):
+        corpusfoo = corpusfoos[i]
+        split = splits[i]
+        lang = langs[i]
+        outputCollapsedDependencyTriples(corpusfoo + '.sent.xml', corpusfoo + '.cdep')
+        if lang == 'eng':
+            word2phrase_filelevel(
+                corpusfoo,
+                corpusfoo + '.cdep',
+                corpusfoo + '.phr',
+                corpusfoo + '.phr.cdep'
+            )
+        if split:
+            valid_size = 200
+            splitValidOut(corpusfoo, valid_size)
 
 

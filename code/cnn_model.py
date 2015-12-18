@@ -491,7 +491,7 @@ def structureSelection():
     dataFile = '../exp/dataset_bi.pkl'
     labelStructureFile = '../exp/label_struct_bi'
     cfswitch = 'c'
-    filter_hs = [3, 4, 5]  # [1, 3] # , 4]#, 5]
+    filter_hs = [1, 3]  # [1, 3] # , 4]#, 5]
     n_epochs = 10
     batch_sizes = [100, 120, 140, 160, 170, 180, 200, 220, 240]
     feature_mapss = [50, 70, 90, 100, 110, 130, 150]
@@ -524,4 +524,4 @@ def structureSelection():
 
 
 if __name__ == '__main__':
-    general_rundown()
+    structureSelection()

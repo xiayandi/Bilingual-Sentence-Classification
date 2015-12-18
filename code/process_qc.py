@@ -394,17 +394,17 @@ def datasetConstructRundown(eng_proportion, ch_proportion):
     ###########################################
     #           English Train files           #
     ###########################################
-    #phr = ''  # '.phr'
-    #eng_train_file_base = '../data/QC/TREC/trimengqctrain'
-    #eng_train_file = eng_train_file_base + phr  # '../data/QC/TREC/formatTrain'  # English training file original order
-    #eng_train_dep_file = eng_train_file_base + phr + '.dep'  # English dependency triple file
+    phr = '.phr'
+    eng_train_file_base = '/data/Semantic/movieReview/imdb/eng_train'
+    eng_train_file = eng_train_file_base + phr  # '../data/QC/TREC/formatTrain'  # English training file original order
+    eng_train_dep_file = eng_train_file_base + phr + '.dep'  # English dependency triple file
     #eng_train_dep_file = eng_train_file_base + phr + '.cdep'  # English dependency triple file
-    #eng_tree_based_train_file = '../exp/eng_train.dat'  # English dependency based training file
-
-    eng_train_file_base = '../data/QC/translate/final_moses_eng2ch_train'
-    eng_train_file = eng_train_file_base + '.seg'  # '../data/QC/TREC/formatTrain'  # English training file original order
-    eng_train_dep_file = eng_train_file_base + '.dep'  # English dependency triple file
     eng_tree_based_train_file = '../exp/eng_train.dat'  # English dependency based training file
+
+    #eng_train_file_base = '../data/QC/translate/final_moses_eng2ch_train'
+    #eng_train_file = eng_train_file_base + '.seg'  # '../data/QC/TREC/formatTrain'  # English training file original order
+    #eng_train_dep_file = eng_train_file_base + '.dep'  # English dependency triple file
+    #eng_tree_based_train_file = '../exp/eng_train.dat'  # English dependency based training file
 
     ###########################################
     # Chinese Train files           #
@@ -423,7 +423,7 @@ def datasetConstructRundown(eng_proportion, ch_proportion):
     #ch_test_file_base = '../data/QC/Chinese_qc/finaltest'
     #ch_test_file_base = '../data/Event/Chinese/sub_test.dat'
 
-    ch_test_file_base = '../data/QC/Chinese_qc/finaltest'
+    ch_test_file_base = '../data/Semantic/movieReview/Douban/test.dat.seg'
     ch_test_file = ch_test_file_base + '.seg'
     ch_test_dep_file = ch_test_file_base + '.dep'
     #ch_test_dep_file = ch_test_file_base + '.cdep'
@@ -433,7 +433,7 @@ def datasetConstructRundown(eng_proportion, ch_proportion):
     ###########################################
     # Chinese valid files                     #
     ###########################################
-    ch_valid_file_base = '../data/QC/Chinese_qc/validset'
+    ch_valid_file_base = '../data/Semantic/movieReview/Douban/validset'
     ch_valid_file = ch_valid_file_base + '.seg'
     ch_valid_dep_file = ch_valid_file_base + '.dep'
     #ch_valid_dep_file = ch_valid_file_base + '.cdep'
