@@ -525,7 +525,7 @@ def structureSelection(filter_hs, logFile):
 
 def script():
     filter_hss = [[1, 3], [1, 3, 4], [1, 3, 4, 5], [3, 4, 5]]
-    for i in xrange(len(filter_hss))
+    for i in xrange(len(filter_hss)):
         filter_hs = filter_hss[i]
         logfile = '../exp/selectionlog_'+str(i)
         structureSelection(filter_hs, logfile)
