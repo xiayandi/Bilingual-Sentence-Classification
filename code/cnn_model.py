@@ -353,6 +353,44 @@ def as_floatX(variable):
 ###############################################################################################
 
 
+def general_rundown():
+    w2vFile = '../exp/blg250.pkl'
+    dataFile = '../exp/dataset_bi.pkl'
+    labelStructureFile = '../exp/label_struct_bi'
+    cfswitch = 'c'
+
+    n_epochs = 100
+
+    ###### QC parameter: universal/collapse + lexicon + phrase #######
+    filter_hs = [1, 3]  # , 4]#, 5]
+    batch_size = 120
+    feature_maps = 110
+    mlphiddensize = 20
+
+    """
+    ###### QC parameter: universal/collapse 74.27#######
+    filter_hs = [3, 4, 5]
+    batch_size = 180
+    feature_maps = 90
+    mlphiddensize = 20
+
+    """
+
+    # process_qc.datasetConstructRundown(10, 0)
+
+    acc = train_joint_conv_net(
+        w2vFile=w2vFile,
+        dataFile=dataFile,
+        labelStructureFile=labelStructureFile,
+        cfswitch=cfswitch,
+        filter_hs=filter_hs,
+        n_epochs=n_epochs,
+        batch_size=batch_size,
+        feature_maps=feature_maps,
+        mlphiddensize=mlphiddensize,
+    )
+
+
 def rundown_qc():
     w2vFile = '../exp/blg250.pkl'
     dataFile = '../exp/dataset_bi.pkl'
