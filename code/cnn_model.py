@@ -59,7 +59,7 @@ def train_joint_conv_net(
         dataFile,
         labelStructureFile,
         cfswitch,
-        filter_hs=[3],
+        filter_hs,
         n_epochs=1000,
         batch_size=50,
         feature_maps=100,
@@ -359,22 +359,12 @@ def general_rundown():
     labelStructureFile = '../exp/label_struct_bi'
     cfswitch = 'c'
 
-    n_epochs = 100
+    n_epochs = 20
 
     ###### QC parameter: universal/collapse + lexicon + phrase #######
-    filter_hs = [1, 3]  # , 4]#, 5]
-    batch_size = 120
-    feature_maps = 110
-    mlphiddensize = 20
-
-    """
-    ###### QC parameter: universal/collapse 74.27#######
     filter_hs = [3, 4, 5]
-    batch_size = 180
-    feature_maps = 90
-    mlphiddensize = 20
-
-    """
+    batch_size = 50
+    feature_maps = 100
 
     # process_qc.datasetConstructRundown(10, 0)
 
@@ -387,7 +377,6 @@ def general_rundown():
         n_epochs=n_epochs,
         batch_size=batch_size,
         feature_maps=feature_maps,
-        mlphiddensize=mlphiddensize,
     )
 
 
@@ -506,38 +495,33 @@ def structureSelection():
     n_epochs = 10
     batch_sizes = [100, 120, 140, 160, 170, 180, 200, 220, 240]
     feature_mapss = [50, 70, 90, 100, 110, 130, 150]
-    mlphiddensizes = [20, 40, 50, 60, 70, 90, 110]
     logFile = '../exp/selectionlog'
     open(logFile, 'w').close()
     best_acc = 0.0
     best_batch_size = 0
     best_fm = 0
-    best_mlp = 0
 
     for batch_size in batch_sizes:
         for feature_maps in feature_mapss:
-            for mlphiddensize in mlphiddensizes:
-                acc = train_joint_conv_net(
-                    w2vFile=w2vFile,
-                    dataFile=dataFile,
-                    labelStructureFile=labelStructureFile,
-                    cfswitch=cfswitch,
-                    filter_hs=filter_hs,
-                    n_epochs=n_epochs,
-                    batch_size=batch_size,
-                    feature_maps=feature_maps,
-                    mlphiddensize=mlphiddensize,
-                )
-                if acc > best_acc:
-                    best_acc = acc
-                    best_batch_size = batch_size
-                    best_fm = feature_maps
-                    best_mlp = mlphiddensize
-                    with open(logFile, 'a') as writer:
-                        writer.write(
-                            'best acc:' + str(best_acc) + ' best_btch:' + str(best_batch_size) + ' best_fm:' + str(
-                                best_fm) + ' best_mlp:' + str(best_mlp) + '\n')
+            acc = train_joint_conv_net(
+                w2vFile=w2vFile,
+                dataFile=dataFile,
+                labelStructureFile=labelStructureFile,
+                cfswitch=cfswitch,
+                filter_hs=filter_hs,
+                n_epochs=n_epochs,
+                batch_size=batch_size,
+                feature_maps=feature_maps,
+            )
+            if acc > best_acc:
+                best_acc = acc
+                best_batch_size = batch_size
+                best_fm = feature_maps
+                with open(logFile, 'a') as writer:
+                    writer.write(
+                        'best acc:' + str(best_acc) + ' best_btch:' + str(best_batch_size) + ' best_fm:' + str(
+                            best_fm) + '\n')
 
 
 if __name__ == '__main__':
-    structureSelection()
+    general_rundown()
