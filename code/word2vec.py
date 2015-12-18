@@ -113,7 +113,7 @@ if __name__ == '__main__':
     #files = ['../data/QC/translate/final_moses_eng2ch_train.seg', '../data/QC/Chinese_qc/finaltest.seg',
     #         '../data/QC/Chinese_qc/validset.seg']  # TREC translated data
     # files = ['../data/QC/TREC/trimengqctrain.phr', '../data/QC/Chinese_qc/finaltest.seg'] # TREC  tranlated data
-    files = ['../data/Semantic/movieReview/imdb/eng_train.phr', '../data/Semantic/movieReview/Douban/test.dat.seg',
+    files = ['../data/Semantic/movieReview/imdb/eng_train', '../data/Semantic/movieReview/Douban/test.dat.seg',
              '../data/Semantic/movieReview/Douban/validset.seg'] # MR data
     #files = ['../data/Semantic/productReview/train.dat', '../data/Semantic/productReview/test.dat.seg'] # PR data
     #files = ['../data/Event/English/train.dat', '../data/Event/Chinese/sub_test.dat.seg'] # event data
