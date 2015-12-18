@@ -423,7 +423,7 @@ def datasetConstructRundown(eng_proportion, ch_proportion):
     #ch_test_file_base = '../data/QC/Chinese_qc/finaltest'
     #ch_test_file_base = '../data/Event/Chinese/sub_test.dat'
 
-    ch_test_file_base = '../data/Semantic/movieReview/Douban/test.dat.seg'
+    ch_test_file_base = '../data/Semantic/movieReview/Douban/test.dat.new'
     ch_test_file = ch_test_file_base + '.seg'
     ch_test_dep_file = ch_test_file_base + '.dep'
     #ch_test_dep_file = ch_test_file_base + '.cdep'
