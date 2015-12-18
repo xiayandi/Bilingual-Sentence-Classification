@@ -395,7 +395,7 @@ def datasetConstructRundown(eng_proportion, ch_proportion):
     #           English Train files           #
     ###########################################
     phr = '.phr'
-    eng_train_file_base = '/data/Semantic/movieReview/imdb/eng_train'
+    eng_train_file_base = '../data/Semantic/movieReview/imdb/eng_train'
     eng_train_file = eng_train_file_base + phr  # '../data/QC/TREC/formatTrain'  # English training file original order
     eng_train_dep_file = eng_train_file_base + phr + '.dep'  # English dependency triple file
     #eng_train_dep_file = eng_train_file_base + phr + '.cdep'  # English dependency triple file
