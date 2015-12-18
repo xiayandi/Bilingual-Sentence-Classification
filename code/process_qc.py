@@ -394,17 +394,17 @@ def datasetConstructRundown(eng_proportion, ch_proportion):
     ###########################################
     #           English Train files           #
     ###########################################
-    phr = ''  # '.phr'
-    eng_train_file_base = '../data/QC/TREC/trimengqctrain'
-    eng_train_file = eng_train_file_base + phr  # '../data/QC/TREC/formatTrain'  # English training file original order
-    eng_train_dep_file = eng_train_file_base + phr + '.dep'  # English dependency triple file
+    #phr = ''  # '.phr'
+    #eng_train_file_base = '../data/QC/TREC/trimengqctrain'
+    #eng_train_file = eng_train_file_base + phr  # '../data/QC/TREC/formatTrain'  # English training file original order
+    #eng_train_dep_file = eng_train_file_base + phr + '.dep'  # English dependency triple file
     #eng_train_dep_file = eng_train_file_base + phr + '.cdep'  # English dependency triple file
-    eng_tree_based_train_file = '../exp/eng_train.dat'  # English dependency based training file
-
-    # eng_train_file_base = '../data/QC/TREC/formatTrain'
-    #eng_train_file = eng_train_file_base + '.seg'  # '../data/QC/TREC/formatTrain'  # English training file original order
-    #eng_train_dep_file = eng_train_file_base + '.dep'  # English dependency triple file
     #eng_tree_based_train_file = '../exp/eng_train.dat'  # English dependency based training file
+
+    eng_train_file_base = '../data/QC/translate/final_moses_eng2ch_train'
+    eng_train_file = eng_train_file_base + '.seg'  # '../data/QC/TREC/formatTrain'  # English training file original order
+    eng_train_dep_file = eng_train_file_base + '.dep'  # English dependency triple file
+    eng_tree_based_train_file = '../exp/eng_train.dat'  # English dependency based training file
 
     ###########################################
     # Chinese Train files           #
