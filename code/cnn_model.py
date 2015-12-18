@@ -361,11 +361,20 @@ def rundown_qc():
 
     n_epochs = 100
 
-    ###### QC parameter #######
+    ###### QC parameter: universal/collapse + lexicon + phrase #######
     filter_hs = [1, 3]  # , 4]#, 5]
     batch_size = 120
     feature_maps = 110
     mlphiddensize = 20
+
+    """
+    ###### QC parameter: universal/collapse 74.27#######
+    filter_hs = [3, 4, 5]
+    batch_size = 180
+    feature_maps = 90
+    mlphiddensize = 20
+
+    """
 
     # process_qc.datasetConstructRundown(10, 0)
 
@@ -455,7 +464,7 @@ def structureSelection():
     dataFile = '../exp/dataset_bi.pkl'
     labelStructureFile = '../exp/label_struct_bi'
     cfswitch = 'c'
-    filter_hs = [3, 4, 5]  # [1, 3] # , 4]#, 5]
+    filter_hs = [3]  # [1, 3] # , 4]#, 5]
     n_epochs = 10
     batch_sizes = [100, 120, 140, 160, 170, 180, 200, 220, 240]
     feature_mapss = [50, 70, 90, 100, 110, 130, 150]
