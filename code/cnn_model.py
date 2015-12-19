@@ -523,13 +523,11 @@ def structureSelection(filter_hs, logFile):
                             best_fm) + '\n')
 
 
-def script():
-    filter_hss = [[3, 4, 5]]
-    for i in xrange(len(filter_hss)):
-        filter_hs = filter_hss[i]
-        logfile = '../exp/selectionlog_'+str(i)
+def script(config_, filter_hss):
+    for i, filter_hs in enumerate(filter_hss):
+        logfile = config_.logprefix+str(i)
         structureSelection(filter_hs, logfile)
 
 
 if __name__ == '__main__':
-    script()
+    print 'cnn model'

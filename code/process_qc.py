@@ -510,6 +510,95 @@ def datasetConstructRundown(eng_proportion, ch_proportion):
     dataset_output.close()
 
 
+def datasetConstructRundown_config(config_):
+    """
+    This is a demo script for showing how to use the defined functions to produce data
+    that is required by CNN model.
+    """
+    ###########################################
+    #           English Train files           #
+    ###########################################
+    if config_.trainlang == 'eng':
+        eng_train_file_base = config_.trainbase
+        eng_train_file = config_.trainfile  # '../data/QC/TREC/formatTrain'  # English training file original order
+        eng_train_dep_file = config_.traindep  # English dependency triple file
+        eng_tree_based_train_file = '../exp/eng_train.dat'  # English dependency based training file
+    else:
+        eng_train_file_base = config_.trainbase
+        eng_train_file = config_.trainfile  # '../data/QC/TREC/formatTrain'  # English training file original order
+        eng_train_dep_file = config_.traindep  # English dependency triple file
+        eng_tree_based_train_file = '../exp/eng_train.dat'  # English dependency based training file
+
+
+    ###########################################
+    # Chinese Test files            #
+    ###########################################
+    ch_test_file_base = config_.testbase
+    ch_test_file = config_.testfile
+    ch_test_dep_file = config_.testdep
+    ch_tree_based_test_file = '../exp/test.dat'
+
+
+    ###########################################
+    # Chinese valid files                     #
+    ###########################################
+    ch_valid_file_base = config_.validbase
+    ch_valid_file = config_.validfile
+    ch_valid_dep_file = config_.validdep
+    ch_tree_based_valid_file = '../exp/valid.dat'
+
+    label_struct_file = '../exp/label_struct_bi'
+    vocab_file = '../exp/vocab_bi.lst'
+    outputDataFile = '../exp/dataset_bi.pkl'
+    DepBased = True
+
+    # output label structure file and get the label to index hash map
+    output_label_structure(eng_train_file, label_struct_file)
+    lbl2idxmap = get_lbl_to_idx_map(label_struct_file)
+
+    # find the global max sentence length
+    max_l = find_global_max_length([eng_train_file, ch_test_file])
+
+    if DepBased:
+        # reorder sentences
+        ancestorNum = 4  # max window size is 4+1
+        filter_h = ancestorNum + 1  # window size
+
+        constructDependencyBasedData(ancestorNum, eng_train_file, eng_train_dep_file, eng_tree_based_train_file)
+        constructDependencyBasedData(ancestorNum, ch_test_file, ch_test_dep_file, ch_tree_based_test_file)
+        constructDependencyBasedData(ancestorNum, ch_valid_file, ch_valid_dep_file, ch_tree_based_valid_file)
+
+        # actual stage for constructing CNN data
+        eng_train_part = construct_dataset(eng_tree_based_train_file, filter_h, max_l, lbl2idxmap, vocab_file,
+                                           get_idx_from_dep_pattern)
+        ch_test_part = construct_dataset(ch_tree_based_test_file, filter_h, max_l, lbl2idxmap, vocab_file,
+                                         get_idx_from_dep_pattern)
+        ch_valid_part = construct_dataset(ch_tree_based_valid_file, filter_h, max_l, lbl2idxmap, vocab_file,
+                                          get_idx_from_dep_pattern)
+    else:
+        filter_h = 3
+        # actual stage for constructing CNN data
+        eng_train_part = construct_dataset(eng_train_file, filter_h, max_l, lbl2idxmap, vocab_file, get_idx_from_sent)
+        ch_test_part = construct_dataset(ch_test_file, filter_h, max_l, lbl2idxmap, vocab_file, get_idx_from_sent)
+        ch_valid_part = construct_dataset(ch_valid_file, filter_h, max_l, lbl2idxmap, vocab_file, get_idx_from_sent)
+
+    train_part = eng_train_part
+    test_part = ch_test_part
+    valid_part = ch_valid_part
+
+    dataset = convertNumpy([train_part, test_part, valid_part])
+
+    # display dataset info
+    print 'basic info:'
+    print 'max length is: ' + str(dataset[0][0].shape[1])
+    print 'training set size: ' + str(dataset[0][0].shape)
+    print 'test set size: ' + str(dataset[1][0].shape)
+
+    dataset_output = open(outputDataFile, 'wb')
+    cPickle.dump(dataset, dataset_output, -1)
+    dataset_output.close()
+
+
 if __name__ == '__main__':
     datasetConstructRundown(10, 0)
 

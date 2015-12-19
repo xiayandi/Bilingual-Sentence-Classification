@@ -106,22 +106,32 @@ def rundown(allw2v, files, encodings):
     construct_w2v(250, vocabFile, allw2v, trimmedw2v)
 
 
+def rundown_config(config_):
+    trimmedw2v = '../exp/blg250.pkl'
+    filelist = [config_.trainfile, config_.testfile, config_.validfile]
+    allw2v = config_.allw2v
+    encodings = ['utf8', 'utf8', 'utf8']
+    vocabFile = '../exp/vocab_bi.lst'
+    outputAllVocabList(filelist, encodings, vocabFile)
+    construct_w2v(250, vocabFile, allw2v, trimmedw2v)
+
+
 if __name__ == '__main__':
-    #allw2v = '../data/blg250.txt'  # bilingual embedding
+    allw2v = '../data/blg250.txt'  # bilingual embedding
     #allw2v = '../data/blg250_all_phrase.txt' # phrase based bilingual embedding
-    allw2v = '../data/ch_250.txt' # chinese embedding
+    #allw2v = '../data/ch_250.txt' # chinese embedding
     #files = ['../data/QC/translate/final_moses_eng2ch_train.seg', '../data/QC/Chinese_qc/finaltest.seg',
     #         '../data/QC/Chinese_qc/validset.seg']  # TREC translated data
     # files = ['../data/QC/TREC/trimengqctrain.phr', '../data/QC/Chinese_qc/finaltest.seg'] # TREC  tranlated data
     #files = ['../data/Semantic/movieReview/imdb/eng_train', '../data/Semantic/movieReview/Douban/test.dat.seg',
     #         '../data/Semantic/movieReview/Douban/validset.seg'] # MR data
-    files = ['../data/Semantic/movieReview/trans_imdb/moses_trans_mr_eng2ch_train.seg',
-             '../data/Semantic/movieReview/Douban/test.dat.seg',
-             '../data/Semantic/movieReview/Douban/validset.seg'] # MR translated data
+    #files = ['../data/Semantic/movieReview/trans_imdb/moses_trans_mr_eng2ch_train.seg',
+    #         '../data/Semantic/movieReview/Douban/test.dat.seg',
+    #         '../data/Semantic/movieReview/Douban/validset.seg'] # MR translated data
     #files = ['../data/Semantic/productReview/train.dat', '../data/Semantic/productReview/test.dat.seg'] # PR data
     #files = ['../data/Event/English/train.dat', '../data/Event/Chinese/sub_test.dat.seg'] # event data
-    encodings = ['utf-8', 'utf-8', 'utf-8']
-    rundown(allw2v, files, encodings)
+    #encodings = ['utf-8', 'utf-8', 'utf-8']
+    #rundown(allw2v, files, encodings)
 
 
 

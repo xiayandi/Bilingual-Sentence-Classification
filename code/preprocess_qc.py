@@ -473,8 +473,8 @@ def rundown_for_event():
 if __name__ == "__main__":
     #rundown()
     corpusfoos = [
-        '../data/Semantic/movieReview/Douban/test.dat',
-        '../data/Semantic/movieReview/imdb/eng_train'
+        '../data/Semantic/productReview/test.dat',
+        '../data/Semantic/productReview/train.dat'
     ]
     splits = [True, False]
     langs = ['ch', 'eng']
@@ -492,7 +492,7 @@ if __name__ == "__main__":
                 corpusfoo + '.phr.cdep'
             )
         if split:
-            valid_size = 200
+            valid_size = 314
             splitValidOut(corpusfoo, valid_size)
 
 
