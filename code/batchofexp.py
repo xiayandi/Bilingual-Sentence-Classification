@@ -61,7 +61,7 @@ class config:
 def script():
     trainbase = '../data/Semantic/productReview/train.dat'
     translate_base = '../data/Semantic/productReview/moses_train.dat'
-    testbase = '../data/Semantic/productReview/test.dat'
+    testbase = '../data/Semantic/productReview/test.dat.new'
     validbase = '../data/Semantic/productReview/validset'
 
     preprocess_qc.splitValidOut(testbase, 314)
