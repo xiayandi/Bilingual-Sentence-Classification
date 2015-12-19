@@ -393,8 +393,8 @@ def splitValidOut(foo, valid_size):
         seglines = reader.readlines()
     with codecs.open(foo + '.dep', 'r', 'utf8') as reader:
         deplines = reader.readlines()
-    with codecs.open(foo + '.cdep', 'r', 'utf8') as reader:
-        cdeplines = reader.readlines()
+    #with codecs.open(foo + '.cdep', 'r', 'utf8') as reader:
+    #    cdeplines = reader.readlines()
 
     assert len(foolines) == len(seglines) == len(deplines)
 
@@ -404,38 +404,38 @@ def splitValidOut(foo, valid_size):
     validlines = []
     validseglines = []
     validdeplines = []
-    validcdeplines = []
+    #validcdeplines = []
     for index in permu[:valid_size]:
         validlines.append(foolines[index])
         validseglines.append(seglines[index])
         validdeplines.append(deplines[index])
-        validcdeplines.append(cdeplines[index])
+    #    validcdeplines.append(cdeplines[index])
     with codecs.open(validoutfoo, 'w', 'utf8') as writer:
         writer.writelines(validlines)
     with codecs.open(validoutfoo + '.seg', 'w', 'utf8') as writer:
         writer.writelines(validseglines)
     with codecs.open(validoutfoo + '.dep', 'w', 'utf8') as writer:
         writer.writelines(validdeplines)
-    with codecs.open(validoutfoo + '.cdep', 'w', 'utf8') as writer:
-        writer.writelines(validcdeplines)
+    #with codecs.open(validoutfoo + '.cdep', 'w', 'utf8') as writer:
+    #    writer.writelines(validcdeplines)
 
     newfoolines = []
     newseglines = []
     newdeplines = []
-    newcdeplines = []
+    #newcdeplines = []
     for index in permu[valid_size:]:
         newfoolines.append(foolines[index])
         newseglines.append(seglines[index])
         newdeplines.append(deplines[index])
-        newcdeplines.append(cdeplines[index])
+    #    newcdeplines.append(cdeplines[index])
     with codecs.open(newoutfoo, 'w', 'utf8') as writer:
         writer.writelines(newfoolines)
     with codecs.open(newoutfoo + '.seg', 'w', 'utf8') as writer:
         writer.writelines(newseglines)
     with codecs.open(newoutfoo + '.dep', 'w', 'utf8') as writer:
         writer.writelines(newdeplines)
-    with codecs.open(newoutfoo + '.cdep', 'w', 'utf8') as writer:
-        writer.writelines(newcdeplines)
+    #with codecs.open(newoutfoo + '.cdep', 'w', 'utf8') as writer:
+    #    writer.writelines(newcdeplines)
 
 
 def rundown():
