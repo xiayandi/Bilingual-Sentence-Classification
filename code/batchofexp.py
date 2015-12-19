@@ -70,8 +70,8 @@ def script():
     cdep = False
     phr = True
     lex = True
-    logprefix = 'dep_phr_lex'
-    filter_hss = [[1,3],[1,3,4],[1,3,4,5]]
+    logprefix = '../exp/dep_phr_lex'
+    filter_hss = [[1,3]]
     config_2 = config(trainbase, 'eng', testbase, validbase, lex, phr, cdep, logprefix)
     word2vec.rundown_config(config_2)
     process_qc.datasetConstructRundown_config(config_2)
@@ -81,8 +81,8 @@ def script():
     cdep = False
     phr = False
     lex = True
-    logprefix = 'dep_lex'
-    filter_hss = [[1,3],[1,3,4],[1,3,4,5]]
+    logprefix = '../exp/dep_lex'
+    filter_hss = [[1,3]]
     config_3 = config(trainbase, 'eng', testbase, validbase, lex, phr, cdep, logprefix)
     word2vec.rundown_config(config_3)
     process_qc.datasetConstructRundown_config(config_3)
@@ -92,8 +92,8 @@ def script():
     cdep = False
     phr = False
     lex = False
-    logprefix = 'dep'
-    filter_hss = [[3],[3,4],[3,4,5]]
+    logprefix = '../exp/dep'
+    filter_hss = [[3]]
     config_4 = config(trainbase, 'eng', testbase, validbase, lex, phr, cdep, logprefix)
     word2vec.rundown_config(config_4)
     process_qc.datasetConstructRundown_config(config_4)
