@@ -266,8 +266,10 @@ def train_joint_conv_net(
 
         test_y_preds = test_model()
         valid_y_preds = valid_model()
-        test_acc = eval.accuracy(gold_test_y, test_y_preds)
-        valid_acc = eval.accuracy(gold_valid_y, valid_y_preds)
+        #test_acc = eval.accuracy(gold_test_y, test_y_preds)
+        #valid_acc = eval.accuracy(gold_valid_y, valid_y_preds)
+        test_acc = eval.fscore(gold_test_y, test_y_preds)
+        valid_acc = eval.fscore(gold_valid_y, valid_y_preds)
         if valid_acc > best_valid_acc:
             best_valid_acc = valid_acc
             best_valid_ep = epoch
