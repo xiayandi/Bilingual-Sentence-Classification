@@ -18,6 +18,25 @@ def accuracy(goldlblseq, predlblseq):
     return acc
 
 
+def fscore(goldlblseq, predlblseq):
+    assert len(goldlblseq) == len(predlblseq)
+    truecount = 0.
+    predcount = 0.
+    hitcount = 0.
+    for i in xrange(len(goldlblseq)):
+        if goldlblseq[i] == 1:
+            truecount += 1.
+        if predlblseq[i] == 1:
+            predcount += 1
+        if goldlblseq[i] == 1 and predlblseq[i] == 1:
+            hitcount += 1
+    recall = hitcount/truecount
+    prec = hitcount/predcount
+    fscore = 2.*recall*prec/(recall+prec)
+    print 'fscore: '+str(fscore)+' prec: '+str(prec)+' recall: '+str(recall)
+    return fscore
+
+
 def outputErrorInstances():
     bestfFile = _pathBase_+'exp/bestjointcnnfrs'
     goldfrsFile = _pathBase_+'exp/goldfrs'
