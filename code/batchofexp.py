@@ -61,7 +61,7 @@ class config:
 
 def script():
     trainbase = '../data/Event/English/sub_train.dat'
-    translate_base = '../data/Event/trainslate/moses_train.dat'
+    translate_base = '../data/Event/translate/moses_train.dat'
     chtrainbase = '../data/Event/Chinese/rest_test.dat'
     testbase = '../data/Event/Chinese/sub_test.dat'
     validbase = '../data/Event/Chinese/validset'
