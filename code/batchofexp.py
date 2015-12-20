@@ -69,10 +69,10 @@ def script():
     # Event: dep, lex
     cdep = False
     phr = False
-    lex = True
-    logprefix = '../exp/event_dep_lex_lex'
-    filter_hss = [[1, 3], [1, 3, 4], [1, 3, 4, 5]]
-    config_ = config(trainbase, 'eng', testbase, validbase, lex, phr, cdep, logprefix)
+    lex = False
+    logprefix = '../exp/trans_dep'
+    filter_hss = [[3], [3, 4], [3, 4, 5]]
+    config_ = config(translate_base, 'ch', testbase, validbase, lex, phr, cdep, logprefix)
     word2vec.rundown_config(config_)
     process_qc.datasetConstructRundown_config(config_)
     cnn_model.script(config_, filter_hss)
