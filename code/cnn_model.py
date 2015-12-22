@@ -492,7 +492,7 @@ def structureSelection(filter_hs, logFile):
     w2vFile = '../exp/blg250.pkl'
     dataFile = '../exp/dataset_bi.pkl'
     labelStructureFile = '../exp/label_struct_bi'
-    cfswitch = 'c'
+    cfswitch = 'f'
     #filter_hs = [1, 3]  # [1, 3] # , 4]#, 5]
     n_epochs = 10
     batch_sizes = [100, 120, 140, 160, 170, 180, 200, 220, 240]
