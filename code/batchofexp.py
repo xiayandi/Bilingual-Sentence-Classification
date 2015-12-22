@@ -78,5 +78,21 @@ def script():
     cnn_model.script(config_, filter_hss)
 
 
+def qc_script():
+    trainbase = '../data/QC/TREC/trimengqctrain'
+    translate_base = '../data/QC/translate/final_moses_eng2ch_train'
+    testbase = '../data/QC/Chinese_qc/finaltest'
+    validbase = '../data/Event/Chinese/validset'
+
+    # Event: dep, lex
+    cdep = False
+    phr = False
+    lex = False
+    logprefix = '../exp/trans_dep'
+    config_ = config(trainbase, 'ch', testbase, validbase, lex, phr, cdep, logprefix)
+    word2vec.rundown_config(config_)
+    process_qc.datasetConstructRundown_config(config_)
+
+
 if __name__ == '__main__':
-    script()
+    qc_script()
