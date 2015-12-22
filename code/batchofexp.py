@@ -82,7 +82,7 @@ def qc_script():
     trainbase = '../data/QC/TREC/trimengqctrain'
     translate_base = '../data/QC/translate/final_moses_eng2ch_train'
     testbase = '../data/QC/Chinese_qc/finaltest'
-    validbase = '../data/Event/Chinese/validset'
+    validbase = '../data/QC/Chinese_qc/validset'
 
     # Event: dep, lex
     cdep = False
