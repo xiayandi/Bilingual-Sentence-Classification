@@ -84,14 +84,49 @@ def qc_script():
     testbase = '../data/QC/Chinese_qc/finaltest'
     validbase = '../data/QC/Chinese_qc/validset'
 
-    # Event: dep, lex
+    # Event: dep, lex, phr
     cdep = False
-    phr = False
-    lex = False
-    logprefix = '../exp/trans_dep'
+    phr = True
+    lex = True
+    logprefix = '../exp/dep_lex_phr'
+    filter_hss = [[1, 3], [1, 3, 4], [1, 3, 4, 5]]
     config_ = config(trainbase, 'eng', testbase, validbase, lex, phr, cdep, logprefix)
     word2vec.rundown_config(config_)
     process_qc.datasetConstructRundown_config(config_)
+    cnn_model.script(config_, filter_hss)
+
+    # Event: dep, lex
+    cdep = False
+    phr = False
+    lex = True
+    logprefix = '../exp/dep_lex'
+    filter_hss = [[1, 3], [1, 3, 4], [1, 3, 4, 5]]
+    config_ = config(trainbase, 'eng', testbase, validbase, lex, phr, cdep, logprefix)
+    word2vec.rundown_config(config_)
+    process_qc.datasetConstructRundown_config(config_)
+    cnn_model.script(config_, filter_hss)
+
+    # Event: dep
+    cdep = False
+    phr = False
+    lex = False
+    logprefix = '../exp/dep'
+    filter_hss = [[3], [3, 4], [3, 4, 5]]
+    config_ = config(trainbase, 'eng', testbase, validbase, lex, phr, cdep, logprefix)
+    word2vec.rundown_config(config_)
+    process_qc.datasetConstructRundown_config(config_)
+    cnn_model.script(config_, filter_hss)
+
+    # Event: trans
+    cdep = False
+    phr = False
+    lex = False
+    logprefix = '../exp/dep'
+    filter_hss = [[3], [3, 4], [3, 4, 5]]
+    config_ = config(translate_base, 'ch', testbase, validbase, lex, phr, cdep, logprefix)
+    word2vec.rundown_config(config_)
+    process_qc.datasetConstructRundown_config(config_)
+    cnn_model.script(config_, filter_hss)
 
 
 if __name__ == '__main__':
