@@ -89,7 +89,7 @@ def qc_script():
     phr = False
     lex = False
     logprefix = '../exp/trans_dep'
-    config_ = config(trainbase, 'ch', testbase, validbase, lex, phr, cdep, logprefix)
+    config_ = config(trainbase, 'eng', testbase, validbase, lex, phr, cdep, logprefix)
     word2vec.rundown_config(config_)
     process_qc.datasetConstructRundown_config(config_)
 
