@@ -63,7 +63,8 @@ def train_joint_conv_net(
         n_epochs=1000,
         batch_size=50,
         feature_maps=100,
-        mlphiddensize=100,
+        hasmlphidden=False,
+        usefscore=False
 ):
     """
     function: learning and testing sentence level Question Classification Task
@@ -114,6 +115,11 @@ def train_joint_conv_net(
         sys.exit()
 
     label_size = len(label_vec)
+
+    if hasmlphidden:
+        layer_size = [feature_maps * len(filter_hs), 100, label_size]
+    else:
+        layer_size = [feature_maps * len(filter_hs), label_size]
 
     # train part
     train_y = shared_store(datasets[trainDataSetIndex][lblIndex])
@@ -179,7 +185,7 @@ def train_joint_conv_net(
     classifier = MLPDropout(
         rng=rng,
         input=mlp_input,
-        layer_sizes=[feature_maps * len(filter_hs), label_size],
+        layer_sizes=layer_size,  # [feature_maps * len(filter_hs), label_size],
         dropout_rate=0.5,
         activation=Iden
     )
@@ -266,10 +272,12 @@ def train_joint_conv_net(
 
         test_y_preds = test_model()
         valid_y_preds = valid_model()
-        # test_acc = eval.accuracy(gold_test_y, test_y_preds)
-        #valid_acc = eval.accuracy(gold_valid_y, valid_y_preds)
-        test_acc = eval.fscore(gold_test_y, test_y_preds)
-        valid_acc = eval.fscore(gold_valid_y, valid_y_preds)
+        if usefscore:
+            test_acc = eval.fscore(gold_test_y, test_y_preds)
+            valid_acc = eval.fscore(gold_valid_y, valid_y_preds)
+        else:
+            test_acc = eval.accuracy(gold_test_y, test_y_preds)
+            valid_acc = eval.accuracy(gold_valid_y, valid_y_preds)
         if valid_acc > best_valid_acc:
             best_valid_acc = valid_acc
             best_valid_ep = epoch
@@ -488,13 +496,13 @@ def exprun():
     print accs
 
 
-def structureSelection(filter_hs, logFile):
+def structureSelection(filter_hs, mlphidden, usefscore, logFile):
     w2vFile = '../exp/blg250.pkl'
     dataFile = '../exp/dataset_bi.pkl'
     labelStructureFile = '../exp/label_struct_bi'
     cfswitch = 'c'
     #filter_hs = [1, 3]  # [1, 3] # , 4]#, 5]
-    n_epochs = 20
+    n_epochs = 10
     batch_sizes = [100, 120, 140, 160, 170, 180, 200, 220, 240]
     feature_mapss = [50, 70, 90, 100, 110, 130, 150]
     #logFile = '../exp/selectionlog'
@@ -514,6 +522,8 @@ def structureSelection(filter_hs, logFile):
                 n_epochs=n_epochs,
                 batch_size=batch_size,
                 feature_maps=feature_maps,
+                hasmlphidden=mlphidden,
+                usefscore=usefscore
             )
             if acc > best_acc:
                 best_acc = acc
@@ -525,10 +535,10 @@ def structureSelection(filter_hs, logFile):
                             best_fm) + '\n')
 
 
-def script(config_, filter_hss):
+def script(config_, filter_hss, hashidden):
     for i, filter_hs in enumerate(filter_hss):
         logfile = config_.logprefix+str(i)
-        structureSelection(filter_hs, logfile)
+        structureSelection(filter_hs, hashidden, config_.usefscore, logfile)
 
 
 if __name__ == '__main__':
