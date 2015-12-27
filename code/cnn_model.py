@@ -266,10 +266,10 @@ def train_joint_conv_net(
 
         test_y_preds = test_model()
         valid_y_preds = valid_model()
-        test_acc = eval.accuracy(gold_test_y, test_y_preds)
-        valid_acc = eval.accuracy(gold_valid_y, valid_y_preds)
-        #test_acc = eval.fscore(gold_test_y, test_y_preds)
-        #valid_acc = eval.fscore(gold_valid_y, valid_y_preds)
+        # test_acc = eval.accuracy(gold_test_y, test_y_preds)
+        #valid_acc = eval.accuracy(gold_valid_y, valid_y_preds)
+        test_acc = eval.fscore(gold_test_y, test_y_preds)
+        valid_acc = eval.fscore(gold_valid_y, valid_y_preds)
         if valid_acc > best_valid_acc:
             best_valid_acc = valid_acc
             best_valid_ep = epoch
@@ -492,9 +492,9 @@ def structureSelection(filter_hs, logFile):
     w2vFile = '../exp/blg250.pkl'
     dataFile = '../exp/dataset_bi.pkl'
     labelStructureFile = '../exp/label_struct_bi'
-    cfswitch = 'f'
+    cfswitch = 'c'
     #filter_hs = [1, 3]  # [1, 3] # , 4]#, 5]
-    n_epochs = 10
+    n_epochs = 20
     batch_sizes = [100, 120, 140, 160, 170, 180, 200, 220, 240]
     feature_mapss = [50, 70, 90, 100, 110, 130, 150]
     #logFile = '../exp/selectionlog'

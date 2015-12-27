@@ -2,5 +2,6 @@
 ###############################
 data
 exp
+exp_backup
 .idea
 *.pyc

@@ -59,7 +59,7 @@ class config:
             self.validdep = validbase + '.dep'
 
 
-def script():
+def event_script():
     trainbase = '../data/Event/English/sub_train.dat'
     translate_base = '../data/Event/translate/moses_train.dat'
     chtrainbase = '../data/Event/Chinese/rest_test.dat'
@@ -70,9 +70,9 @@ def script():
     cdep = False
     phr = False
     lex = False
-    logprefix = '../exp/trans_dep'
+    logprefix = '../exp/event_cnn_bi'
     filter_hss = [[3], [3, 4], [3, 4, 5]]
-    config_ = config(translate_base, 'ch', testbase, validbase, lex, phr, cdep, logprefix)
+    config_ = config(trainbase, 'eng', testbase, validbase, lex, phr, cdep, logprefix)
     word2vec.rundown_config(config_)
     process_qc.datasetConstructRundown_config(config_)
     cnn_model.script(config_, filter_hss)
@@ -88,7 +88,43 @@ def qc_script():
     cdep = False
     phr = False
     lex = False
-    logprefix = '../exp/dep_dep'
+    logprefix = '../exp/qc_cnn_bi'
+    filter_hss = [[3], [3, 4], [3, 4, 5]]
+    config_ = config(trainbase, 'eng', testbase, validbase, lex, phr, cdep, logprefix)
+    word2vec.rundown_config(config_)
+    process_qc.datasetConstructRundown_config(config_)
+    cnn_model.script(config_, filter_hss)
+
+
+def mr_script():
+    trainbase = '../data/Semantic/movieReview/imdb/eng_train'
+    translate_base = '../data/Semantic/movieReview/trans_imdb/moses_trans_mr_eng2ch_train'
+    testbase = '../data/Semantic/movieReview/Douban/test.dat.new'
+    validbase = '../data/Semantic/movieReview/Douban/validset'
+
+    # Event: without dep
+    cdep = False
+    phr = False
+    lex = False
+    logprefix = '../exp/mr_cnn_bi'
+    filter_hss = [[3], [3, 4], [3, 4, 5]]
+    config_ = config(trainbase, 'eng', testbase, validbase, lex, phr, cdep, logprefix)
+    word2vec.rundown_config(config_)
+    process_qc.datasetConstructRundown_config(config_)
+    cnn_model.script(config_, filter_hss)
+
+
+def pr_script():
+    trainbase = '../data/Semantic/productReview/train.dat'
+    translate_base = '../data/Semantic/productReview/moses_train.dat'
+    testbase = '../data/Semantic/productReview/test.dat.new'
+    validbase = '../data/Semantic/productReview/validset'
+
+    # Event: without dep
+    cdep = False
+    phr = False
+    lex = False
+    logprefix = '../exp/pr_cnn_bi'
     filter_hss = [[3], [3, 4], [3, 4, 5]]
     config_ = config(trainbase, 'eng', testbase, validbase, lex, phr, cdep, logprefix)
     word2vec.rundown_config(config_)
@@ -97,4 +133,4 @@ def qc_script():
 
 
 if __name__ == '__main__':
-    qc_script()
+    event_script()

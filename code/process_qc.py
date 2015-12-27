@@ -88,6 +88,36 @@ def get_idx_from_sent(sent, word_idx_map, max_l, filter_h):
     :return: a vector with each element representing a word index in the sentence
     """
     # Transforms sentence into a list of indices. Pad with zeroes.
+    idx_seq = []
+    pad = filter_h - 1
+    for i in xrange(pad):
+        idx_seq.append(0)
+    words = sent.split()
+    for word in words:
+        if word in word_idx_map:  # remove unkown words
+            idx_seq.append(word_idx_map[word])
+        else:
+            idx_seq.append(0)
+    while len(idx_seq) < max_l + 2 * pad:
+        idx_seq.append(0)
+    # create x
+    x = []
+    for position in xrange(len(idx_seq) - filter_h):
+        x.append(idx_seq[position:position + filter_h])
+    return x
+
+
+def _get_idx_from_sent(sent, word_idx_map, max_l, filter_h):
+    """
+    function: given a text sentence, return a index sentence with each index represents
+            the word index in the word embedding dictionary
+    :param sent: text sentence
+    :param word_idx_map: a hash variable mapping text word to int index
+    :param max_l: the global max length of the sentences in training data
+    :param filter_h: window size
+    :return: a vector with each element representing a word index in the sentence
+    """
+    # Transforms sentence into a list of indices. Pad with zeroes.
     x = []
     pad = filter_h - 1
     for i in xrange(pad):
@@ -550,7 +580,7 @@ def datasetConstructRundown_config(config_):
     label_struct_file = '../exp/label_struct_bi'
     vocab_file = '../exp/vocab_bi.lst'
     outputDataFile = '../exp/dataset_bi.pkl'
-    DepBased = True
+    DepBased = False
 
     # output label structure file and get the label to index hash map
     output_label_structure(eng_train_file, label_struct_file)
@@ -576,7 +606,7 @@ def datasetConstructRundown_config(config_):
         ch_valid_part = construct_dataset(ch_tree_based_valid_file, filter_h, max_l, lbl2idxmap, vocab_file,
                                           get_idx_from_dep_pattern)
     else:
-        filter_h = 3
+        filter_h = 5
         # actual stage for constructing CNN data
         eng_train_part = construct_dataset(eng_train_file, filter_h, max_l, lbl2idxmap, vocab_file, get_idx_from_sent)
         ch_test_part = construct_dataset(ch_test_file, filter_h, max_l, lbl2idxmap, vocab_file, get_idx_from_sent)
