@@ -71,24 +71,13 @@ def qc_script():
     phr = False
     lex = False
     hasmlphidden = False
-    logprefix = '../exp/qc_cnn_unk_bi'
+    logprefix = '../exp/qc_bi_converge'
     filter_hss = [[3], [3, 4], [3, 4, 5]]
     config_ = config(trainbase, 'eng', testbase, validbase, lex, phr, cdep, logprefix)
     word2vec.rundown_config(config_)
     process_qc.datasetConstructRundown_config(config_)
     cnn_model.script(config_, filter_hss, hasmlphidden)
 
-    # Event: dep
-    cdep = False
-    phr = False
-    lex = False
-    hasmlphidden = True
-    logprefix = '../exp/qc_cnn_hidden_bi'
-    filter_hss = [[3], [3, 4], [3, 4, 5]]
-    config_ = config(trainbase, 'eng', testbase, validbase, lex, phr, cdep, logprefix)
-    word2vec.rundown_config(config_)
-    process_qc.datasetConstructRundown_config(config_)
-    cnn_model.script(config_, filter_hss, hasmlphidden)
 
 
 def mr_script():
@@ -102,19 +91,7 @@ def mr_script():
     phr = False
     lex = False
     hasmlphidden = False
-    logprefix = '../exp/mr_cnn_unk_bi'
-    filter_hss = [[3], [3, 4], [3, 4, 5]]
-    config_ = config(trainbase, 'eng', testbase, validbase, lex, phr, cdep, logprefix)
-    word2vec.rundown_config(config_)
-    process_qc.datasetConstructRundown_config(config_)
-    cnn_model.script(config_, filter_hss, hasmlphidden)
-
-    # Event: without dep
-    cdep = False
-    phr = False
-    lex = False
-    hasmlphidden = True
-    logprefix = '../exp/mr_cnn_hidden_bi'
+    logprefix = '../exp/mr_bi_converge'
     filter_hss = [[3], [3, 4], [3, 4, 5]]
     config_ = config(trainbase, 'eng', testbase, validbase, lex, phr, cdep, logprefix)
     word2vec.rundown_config(config_)
@@ -133,20 +110,7 @@ def pr_script():
     phr = False
     lex = False
     hasmlphidden = False
-    logprefix = '../exp/pr_cnn_unk_bi'
-    filter_hss = [[3], [3, 4], [3, 4, 5]]
-    config_ = config(trainbase, 'eng', testbase, validbase, lex, phr, cdep, logprefix)
-    word2vec.rundown_config(config_)
-    process_qc.datasetConstructRundown_config(config_)
-    cnn_model.script(config_, filter_hss, hasmlphidden)
-
-
-    # Event: without dep
-    cdep = False
-    phr = False
-    lex = False
-    hasmlphidden = True
-    logprefix = '../exp/pr_cnn_hidden_bi'
+    logprefix = '../exp/pr_bi_converge'
     filter_hss = [[3], [3, 4], [3, 4, 5]]
     config_ = config(trainbase, 'eng', testbase, validbase, lex, phr, cdep, logprefix)
     word2vec.rundown_config(config_)
@@ -166,20 +130,7 @@ def event_script():
     phr = False
     lex = False
     hasmlphidden = False
-    logprefix = '../exp/event_cnn_unk_bi'
-    filter_hss = [[3], [3, 4], [3, 4, 5]]
-    config_ = config(trainbase, 'eng', testbase, validbase, lex, phr, cdep, logprefix, usefscore=True)
-    word2vec.rundown_config(config_)
-    process_qc.datasetConstructRundown_config(config_)
-    cnn_model.script(config_, filter_hss, hasmlphidden)
-
-
-    # Event: dep, lex
-    cdep = False
-    phr = False
-    lex = False
-    hasmlphidden = True
-    logprefix = '../exp/event_cnn_hidden_bi'
+    logprefix = '../exp/event_bi_converge'
     filter_hss = [[3], [3, 4], [3, 4, 5]]
     config_ = config(trainbase, 'eng', testbase, validbase, lex, phr, cdep, logprefix, usefscore=True)
     word2vec.rundown_config(config_)
@@ -189,6 +140,4 @@ def event_script():
 
 if __name__ == '__main__':
     qc_script()
-    mr_script()
-    pr_script()
-    event_script()
+

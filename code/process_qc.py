@@ -69,8 +69,8 @@ def get_idx_from_dep_pattern(deppatterns, word_idx_map, max_l, filter_h):
         for word in window:
             if word in word_idx_map:  # remove unkown words
                 window_x.append(word_idx_map[word])
-            else:
-                window_x.append(0)
+                # else:
+                #    window_x.append(0)
         x.append(window_x)
     while len(x) < max_l:
         x.append([0] * filter_h)

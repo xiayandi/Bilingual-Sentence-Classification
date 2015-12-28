@@ -254,6 +254,7 @@ def train_joint_conv_net(
     best_test_acc = 0.
     final_acc = 0.
     epoch = 0
+    last_acc = 0.
 
     # create gold value sequences, required by the eval.py
     with open('../exp/goldrs', 'w') as writer:
@@ -294,8 +295,10 @@ def train_joint_conv_net(
         print 'test accuracy is: ' + str(test_acc)
         print 'valid accuracy is: ' + str(valid_acc)
         print 'current best valid prediction accuracy is: ' + str(best_valid_acc) + ' at epoch ' + str(best_valid_ep)
+        print 'current best final prediction accuracy is: ' + str(final_acc) + ' at epoch ' + str(best_valid_ep)
         print 'current best test prediction accuracy is: ' + str(best_test_acc) + ' at epoch ' + str(best_test_ep)
-
+        last_acc = test_acc
+    final_acc = last_acc
     return final_acc
 
 
@@ -373,8 +376,8 @@ def general_rundown():
 
     ###### QC parameter: universal/collapse + lexicon + phrase #######
     filter_hs = [3, 4, 5]
-    batch_size = 50
-    feature_maps = 100
+    batch_size = 180
+    feature_maps = 90
 
     # process_qc.datasetConstructRundown(10, 0)
 
