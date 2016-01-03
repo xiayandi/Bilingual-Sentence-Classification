@@ -69,8 +69,8 @@ def get_idx_from_dep_pattern(deppatterns, word_idx_map, max_l, filter_h):
         for word in window:
             if word in word_idx_map:  # remove unkown words
                 window_x.append(word_idx_map[word])
-                # else:
-                #    window_x.append(0)
+            else:
+                window_x.append(0)
         x.append(window_x)
     while len(x) < max_l:
         x.append([0] * filter_h)
@@ -371,7 +371,7 @@ def construct_dataset(datafile, filter_h, max_l, lbl2idxmap, vocab_file, indexiz
 
 def convertNumpy(lst):
     datasets = []
-    for v in lst:
+    for i, v in enumerate(lst):
         sent_array = np.array(v[0], dtype="int32")
         c_array = np.array(v[1], dtype="int32")
         f_array = np.array(v[2], dtype="int32")
@@ -540,7 +540,7 @@ def datasetConstructRundown(eng_proportion, ch_proportion):
     dataset_output.close()
 
 
-def datasetConstructRundown_config(config_):
+def datasetConstructRundown_config(config_, DepBased, eng_portion=10):
     """
     This is a demo script for showing how to use the defined functions to produce data
     that is required by CNN model.
@@ -580,7 +580,6 @@ def datasetConstructRundown_config(config_):
     label_struct_file = '../exp/label_struct_bi'
     vocab_file = '../exp/vocab_bi.lst'
     outputDataFile = '../exp/dataset_bi.pkl'
-    DepBased = False
 
     # output label structure file and get the label to index hash map
     output_label_structure(eng_train_file, label_struct_file)
@@ -612,7 +611,13 @@ def datasetConstructRundown_config(config_):
         ch_test_part = construct_dataset(ch_test_file, filter_h, max_l, lbl2idxmap, vocab_file, get_idx_from_sent)
         ch_valid_part = construct_dataset(ch_valid_file, filter_h, max_l, lbl2idxmap, vocab_file, get_idx_from_sent)
 
-    train_part = eng_train_part
+    total_amount = len(eng_train_part[0])
+    using_amount = eng_portion * total_amount / 10
+    train_part = [
+        eng_train_part[0][:using_amount],
+        eng_train_part[1][:using_amount],
+        eng_train_part[2][:using_amount]
+    ]
     test_part = ch_test_part
     valid_part = ch_valid_part
 

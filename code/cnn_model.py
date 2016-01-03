@@ -298,7 +298,7 @@ def train_joint_conv_net(
         print 'current best final prediction accuracy is: ' + str(final_acc) + ' at epoch ' + str(best_valid_ep)
         print 'current best test prediction accuracy is: ' + str(best_test_acc) + ' at epoch ' + str(best_test_ep)
         last_acc = test_acc
-    final_acc = last_acc
+    # final_acc = last_acc
     return final_acc
 
 
@@ -366,7 +366,7 @@ def as_floatX(variable):
 ###############################################################################################
 
 
-def general_rundown():
+def general_rundown(bch_sz, fm, filter_hs, config_):
     w2vFile = '../exp/blg250.pkl'
     dataFile = '../exp/dataset_bi.pkl'
     labelStructureFile = '../exp/label_struct_bi'
@@ -375,9 +375,10 @@ def general_rundown():
     n_epochs = 20
 
     ###### QC parameter: universal/collapse + lexicon + phrase #######
-    filter_hs = [3, 4, 5]
-    batch_size = 180
-    feature_maps = 90
+    if config_.lexicon:
+        filter_hs = [1] + filter_hs
+    batch_size = bch_sz
+    feature_maps = fm
 
     # process_qc.datasetConstructRundown(10, 0)
 
@@ -390,80 +391,9 @@ def general_rundown():
         n_epochs=n_epochs,
         batch_size=batch_size,
         feature_maps=feature_maps,
+        usefscore=config_.usefscore
     )
-
-
-def rundown_qc():
-    w2vFile = '../exp/blg250.pkl'
-    dataFile = '../exp/dataset_bi.pkl'
-    labelStructureFile = '../exp/label_struct_bi'
-    cfswitch = 'c'
-
-    n_epochs = 100
-
-    ###### QC parameter: universal/collapse + lexicon + phrase #######
-    filter_hs = [1, 3]  # , 4]#, 5]
-    batch_size = 120
-    feature_maps = 110
-    mlphiddensize = 20
-
-    """
-    ###### QC parameter: universal/collapse 74.27#######
-    filter_hs = [3, 4, 5]
-    batch_size = 180
-    feature_maps = 90
-    mlphiddensize = 20
-
-    """
-
-    # process_qc.datasetConstructRundown(10, 0)
-
-    acc = train_joint_conv_net(
-        w2vFile=w2vFile,
-        dataFile=dataFile,
-        labelStructureFile=labelStructureFile,
-        cfswitch=cfswitch,
-        filter_hs=filter_hs,
-        n_epochs=n_epochs,
-        batch_size=batch_size,
-        feature_maps=feature_maps,
-        mlphiddensize=mlphiddensize,
-    )
-
-
-def rundown_mr():
-    w2vFile = '../exp/blg250.pkl'
-    dataFile = '../exp/dataset_bi.pkl'
-    labelStructureFile = '../exp/label_struct_bi'
-    cfswitch = 'c'
-
-    n_epochs = 100
-
-    ###### QC parameter #######
-    filter_hs = [1, 3]  # , 4]#, 5]
-    batch_size = 120
-    feature_maps = 110
-    mlphiddensize = 20
-
-    ###### movie review parameter ######
-    # filter_hs = [1, 3, 4, 5]
-    #batch_size = 170
-    #feature_maps = 100  # 150
-    #mlphiddensize = 60
-
-    # process_qc.datasetConstructRundown(10, 0)
-
-    acc = train_joint_conv_net(
-        w2vFile=w2vFile,
-        dataFile=dataFile,
-        labelStructureFile=labelStructureFile,
-        cfswitch=cfswitch,
-        filter_hs=filter_hs,
-        n_epochs=n_epochs,
-        batch_size=batch_size,
-        feature_maps=feature_maps,
-        mlphiddensize=mlphiddensize,
-    )
+    return acc
 
 
 def exprun():
@@ -503,7 +433,7 @@ def structureSelection(filter_hs, mlphidden, usefscore, logFile):
     w2vFile = '../exp/blg250.pkl'
     dataFile = '../exp/dataset_bi.pkl'
     labelStructureFile = '../exp/label_struct_bi'
-    cfswitch = 'c'
+    cfswitch = 'f'
     #filter_hs = [1, 3]  # [1, 3] # , 4]#, 5]
     n_epochs = 10
     batch_sizes = [100, 120, 140, 160, 170, 180, 200, 220, 240]
@@ -538,7 +468,7 @@ def structureSelection(filter_hs, mlphidden, usefscore, logFile):
                             best_fm) + '\n')
 
 
-def script(config_, filter_hss, hashidden):
+def structure_script(config_, filter_hss, hashidden):
     for i, filter_hs in enumerate(filter_hss):
         logfile = config_.logprefix+str(i)
         structureSelection(filter_hs, hashidden, config_.usefscore, logfile)
