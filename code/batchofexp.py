@@ -274,6 +274,44 @@ def event_script():
     """
 
 
+def event_script_mono():
+    trainbase = '../data/Event/English/sub_train.dat'
+    translate_base = '../data/Event/translate/moses_train.dat'
+    chtrainbase = '../data/Event/Chinese/rest_test.dat'
+    testbase = '../data/Event/Chinese/sub_test.dat'
+    validbase = '../data/Event/Chinese/validset'
+
+    # data quantity
+    logprefix = '../exp/event_data_quantity'
+    accs = []
+    open(logprefix, 'w').close()
+    for i in xrange(1, 11):
+        cdep = False
+        dep = True
+        phr = True
+        lex = True
+        config_ = config(trainbase, 'eng', testbase, validbase, lex, phr, cdep, logprefix)
+        word2vec.rundown_config(config_)
+        process_qc.datasetConstructRundown_config(config_, dep, eng_portion=i)
+
+        # general running
+        batch_size = 160
+        feature_map = 130
+        filter_hs = [3]
+        accs.append(cnn_model.general_rundown(batch_size, feature_map, filter_hs, config_.lexicon))
+
+    with open(logprefix, 'w') as writer:
+        for acc in accs:
+            writer.write(str(acc) + '\t')
+    """
+    # general running
+    batch_size = 160
+    feature_map = 130
+    filter_hs = [3]
+    cnn_model.general_rundown(batch_size, feature_map, filter_hs, config_.lexicon)
+    """
+
+
 def event_script2():
     trainbase = '../data/Event/English/sub_train.dat'
     translate_base = '../data/Event/translate/moses_train.dat'
@@ -301,7 +339,7 @@ def event_script2():
 
 
 if __name__ == '__main__':
-    qc_script2()
+    event_script_mono()
 
 
 
