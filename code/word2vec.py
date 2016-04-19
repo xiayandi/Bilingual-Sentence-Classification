@@ -29,8 +29,14 @@ def outputAllVocabList(filelist, encodings, vocabFile):
 
 
 def construct_w2v(emb_dim, vocablist, w2vfile, w2vout):
-    # construct the word embedding dictionary
-    # and store in numpy array
+    """
+    func: construct the word embedding dictionary and store in numpy array
+    :param emb_dim: dimension of word embeddings
+    :param vocablist: vocab file
+    :param w2vfile: original word embedding file
+    :param w2vout: the output of the trimmed file
+    :return:
+    """
     print 'constructing w2v dictionary....'
     with open(w2vfile, 'r') as reader:
         w2vlines = reader.readlines()
@@ -75,6 +81,12 @@ def construct_w2v(emb_dim, vocablist, w2vfile, w2vout):
 
 
 def findUnkownWords(vocablist, w2vfile):
+    """
+    func: for statistic use, find all the unk words.
+    :param vocablist:
+    :param w2vfile:
+    :return:
+    """
     with open(w2vfile, 'r') as reader:
         w2vlines = reader.readlines()
     with open(vocablist, 'r') as reader:

@@ -44,6 +44,11 @@ def _buildEnglishVocab(segCorpusFile, vocabFile):
 
 
 def getTestSetVocabSet(testfile):
+    """
+    func: given a file, extract the vocabulary.
+    :param testfile:
+    :return:
+    """
     with codecs.open(testfile, 'r', 'utf-8') as reader:
         lines = reader.readlines()
     vocabset = set()
@@ -57,6 +62,13 @@ def getTestSetVocabSet(testfile):
 
 
 def trimBilingualDictionary(bilingual_dict_file, trimed_bilingual_dict_file, testfile):
+    """
+    func: trim bilingual dictionary to fit testfile's vocab
+    :param bilingual_dict_file: input
+    :param trimed_bilingual_dict_file: output trimmed dictionary
+    :param testfile:
+    :return:
+    """
     with codecs.open(bilingual_dict_file, 'r', 'utf-8') as reader:
         entrylines = reader.readlines()
     vocabset = getTestSetVocabSet(testfile)
@@ -79,6 +91,13 @@ def trimBilingualDictionary(bilingual_dict_file, trimed_bilingual_dict_file, tes
 
 
 def phraseBilingualDictionary(bilingual_dict_file, phrase_bilingual_dict_file, phraseFile):
+    """
+    func: create phrase based dictionary
+    :param bilingual_dict_file: input
+    :param phrase_bilingual_dict_file: output dictionary file
+    :param phraseFile: output phrase vocab
+    :return:
+    """
     with codecs.open(bilingual_dict_file, 'r', 'utf-8') as reader:
         entrylines = reader.readlines()
     newlines = []

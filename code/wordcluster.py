@@ -21,6 +21,10 @@ def is_english(word):
 
 
 def word_clustering():
+    """
+    a script to calculate word cluster.
+    :return:
+    """
     datafile = '../data/blg250.txt'
     print 'loading w2v file...'
     with open(datafile, 'r') as reader:
@@ -65,6 +69,10 @@ def word_clustering():
 
 
 def create_tsne_input():
+    """
+    preprocessing.
+    :return:
+    """
     datafile = '../data/blg250.txt'
     print 'loading w2v file...'
     with open(datafile, 'r') as reader:
@@ -104,6 +112,10 @@ def create_tsne_input():
 
 
 def tsne():
+    """
+    a scripte to do tsne.
+    :return:
+    """
     print 'loading...'
     datafile = '../exp/clusters/points'
     data = np.loadtxt(datafile)
@@ -115,6 +127,10 @@ def tsne():
 
 
 def trim():
+    """
+    trim the tsne result, in order to make it human readable
+    :return:
+    """
     trim_threshold = 10
     with codecs.open('../exp/clusters/trimchildren', 'r', 'utf8') as reader:
         clusters = reader.readlines()
@@ -164,6 +180,10 @@ def trim():
 
 
 def visualizedata():
+    """
+    a script to draw tsne graph.
+    :return:
+    """
     labelfile = '../exp/clusters/trimlabels'
     with codecs.open(labelfile, 'r', 'utf8') as reader:
         labels = reader.read().split('\n')[:-1]

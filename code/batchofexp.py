@@ -1,4 +1,7 @@
 __author__ = 'yandixia'
+"""
+This module run experiments on different models and tasks.
+"""
 
 import sys
 import word2vec
